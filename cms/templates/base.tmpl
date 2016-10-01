@@ -20,8 +20,14 @@
     {% endfor %}
 
     <style type="text/css">
+        #main-nav {
+            margin-bottom: 0;
+        }
         article {
             font-size: 18px;
+        }
+        .site-index {
+            font-size: 20px;
         }
         {% for i in extra_style %}
         {{ i }}
@@ -34,7 +40,7 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-default">
+    <nav id="main-nav" class="navbar navbar-default">
         <div class="container-fluid">
             <div class="navbar-header">
                 <a href="/" class="navbar-brand">{{ sitename }}</a>
@@ -67,6 +73,16 @@
         </div>
     </nav>
 
+    <ol class="breadcrumb">
+    {% for page in breadcrumbs %}
+        {% if loop.last %}
+        <li class="active">{{ page.title }}</li>
+        {% else %}
+        <li><a href="{{ page.url }}">{{ page.title }}</a></li>
+        {% endif %}>
+    {% endfor %}
+    </ol>
+
     {% for i in extra_body %}
     {{ i }}
     {% endfor %}
@@ -78,7 +94,7 @@
         </article>
 
         {% if index_page %}
-            <ul>
+            <ul class="site-index">
             {% for item in site_index recursive %}
                 <li><a href="{{ item.url }}">{{ item.title }}</a></li>
                 {% if item.children %}

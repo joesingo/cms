@@ -12,7 +12,7 @@ available:
   for every page on the site (see [below](#page-config))
 
 ## Content
-Content is structured in a heirarchal way that can go as many layers deep as you
+Content is structured in a heirarchal manner that can go as many layers deep as you
 want. Consider the following directory structure
 
     ./articles
@@ -64,7 +64,7 @@ separated by a line containing the string `---`.
             ---
             <myelement>hello</myelement>
 
-          The resulting HTML from this example would then be
+          The resulting HTML would then be
 
                <div class='myelem'>Contents is: hello</div>
 
@@ -93,12 +93,16 @@ separated by a line containing the string `---`.
 
             {"title": <page title based on filename>,
              "url": <URL for the page>,
-             "path": <path to the file for this page>,
+             "path": <path to file for the page>,
              "children": [<child pages>]}
 
     * **header_links:** This is a list in the same format as `site_index` and
     can be used to construct a menu for the site. Currently this is the same as
     `site_index` but only goes two levels deep.
+
+    * **breadcrumbs:** This is a list of pages in the same format as `site_index`
+    that shows where the current page is in the heirarchy. The top level page
+    is first, and the current page is last. See [here](http://ui-patterns.com/patterns/Breadcrumbs) for info about breadcrumbs.
 
     * <span id="index-page-option">**index_page:**</span>If a page is an index page (i.e. it is called index.md and
     there are other pages beneath it), `index_page` will be set to True.
