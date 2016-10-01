@@ -92,7 +92,7 @@ class Site(object):
         # Join together all components after the content dir
         return "/" + "/".join(split_path[i:])
 
-    def get_default_page_config(self):
+    def get_site_config(self):
         """Load config file that serves as a base for every page"""
         with open(self.config_file) as f:
             return yaml.load(f) or {}
@@ -115,7 +115,7 @@ def view_page(url):
     page_info = [p for p in all_pages if p["url"] == url]
 
     if page_info:
-        default_config = site.get_default_page_config()
+        default_config = site.get_site_config()["default_page_config"]
 
         # Set site index and header links
         default_config["site_index"] = index

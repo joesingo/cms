@@ -69,8 +69,8 @@ class Page(object):
     @classmethod
     def format_page_name(cls, file):
         """Given the filename or path to a page, return a nicely formatted
-        version by replacing hyphens with spaces and capitalising the first
-        letter"""
+        version by replacing hyphens/underscores with spaces and capitalising
+        the first letter"""
         if file.endswith(".md"):
             file = file[:-3]
 
@@ -78,7 +78,9 @@ class Page(object):
             file = file[:-6]
 
         name = os.path.basename(file)
-        return name.replace("-", " ").capitalize()
+        name = name.replace("-", " ").capitalize()
+        name = name.replace("_", " ").capitalize()
+        return name
 
     @classmethod
     def merge_configs(cls, base, new):
@@ -107,7 +109,3 @@ class Page(object):
                 config[i] = new[i]
 
         return config
-
-    @classmethod
-    def load_from_file(cls, filename, config_only=False):
-        """Load a page from a file"""

@@ -93,11 +93,6 @@ When handling a request:
 
 
  Things to do:
-  Need to not overwrite some things from provided config/base config in Page,
-  e.g. extra style, users. Need to append to list instead
-
-  base_config option for pages to inherit config
-
   Improve generate_index().
   - Get full recursive listing
   - Look at all .md files
