@@ -33,6 +33,9 @@ class Page(object):
             base_page = Page(this_config["base_config"], config_only=True)
             self.config = Page.merge_configs(self.config, base_page.config)
 
+        # Set default title here in case it has not been specified in this_config
+        self.config["title"] = Page.format_page_name(filename)
+
         self.config = Page.merge_configs(self.config, this_config)
 
         # Deal with the contents of the page if we are not only interested in

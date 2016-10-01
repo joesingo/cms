@@ -117,8 +117,7 @@ def view_page(url):
     if page_info:
         default_config = site.get_default_page_config()
 
-        # Set default title, site index and header links
-        default_config["title"] = Page.format_page_name(page_info[0]["path"])
+        # Set site index and header links
         default_config["site_index"] = index
         default_config["header_links"] = site.generate_index(depth=2)
 
