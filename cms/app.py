@@ -52,6 +52,14 @@ class Site(object):
                     "path": path
                 })
 
+        # If we are getting the root level pages then include home page
+        if start_dir == self.content_dir:
+            home = {"title": "Home",
+                    "url": "/",
+                    "children": [],
+                    "path": os.path.join(self.content_dir, "index.md")}
+            listing.insert(0, home)
+
         return listing
 
     def find_route_to_page(self, index, url):
