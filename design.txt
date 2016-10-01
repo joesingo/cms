@@ -96,9 +96,6 @@ When handling a request:
   Need to not overwrite some things from provided config/base config in Page,
   e.g. extra style, users. Need to append to list instead
 
-  Handle index page. If file does not exist when creating Page, just use
-  provided config and set index flag for template
-
   base_config option for pages to inherit config
 
   Improve generate_index().

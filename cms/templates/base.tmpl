@@ -15,8 +15,6 @@
     <link rel="stylesheet" href="{{ i }}" />
     {% endfor %}
 
-<!-- <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script> -->
-
     {% for i in js_scripts %}
     <script src="{{ i }}"></script>
     {% endfor %}
@@ -25,14 +23,17 @@
         article {
             font-size: 18px;
         }
-        {{ extra_style }}
+        {% for i in extra_style %}
+        {{ i }}
+        {% endfor %}
     </style>
 
-    {{ extra_head }}
+    {% for i in extra_head %}
+    {{ i }}
+    {% endfor %}
 </head>
 
 <body>
-
     <nav class="navbar navbar-default">
         <div class="container-fluid">
             <div class="navbar-header">
@@ -66,6 +67,10 @@
         </div>
     </nav>
 
+    {% for i in extra_body %}
+    {{ i }}
+    {% endfor %}
+
     <div class="container">
         <h1>{{ title }}</h1>
         <article>
@@ -83,8 +88,6 @@
             </ul>
         {% endif %}
     </div>
-
-    {{ extra_body }}
 </body>
 
 </html>
