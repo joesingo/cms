@@ -1,85 +1,74 @@
 import yaml
 import markdown
-import os.path
 import os
 
 class Page(object):
     """A class to represent a web page. A page is loaded from a file that
     contains a YAML config section followed by the content as a markdown"""
 
-    # The default context used for rendering the template
-    DEFAULT_CONTEXT = {
-        "title": "",
-        "content": "",
-        "extra_head": "",
-        "extra_body": "",
-        "extra_style": "",
-        "js_scripts": [],
-        "stylesheets": [],
-        "users": "anon",
-        "template": "base.tmpl",
-        "tags": []
-    }
-
     # The delimiter between the YAML config section and markdown content
     START_OF_CONTENT = "\n---\n"
 
-    def __init__(self, filename):
+    def __init__(self, filename, config):
         """Construct a Page object from a given file"""
+        self.config = config
 
-        with open(filename) as f:
-            file_contents = f.read()
+        # Set a flag in the config if this is an index page, as the template
+        # may want to do something different in this case
+        if filename.endswith("index.md"):
+            self.config["index_page"] = True
 
-        # Split the contents of the file into the config and contents sections
-        config_str, contents_str = file_contents.split(Page.START_OF_CONTENT, 1)
-        config = yaml.load(config_str) or {}
+        try:
+            with open(filename) as f:
+                file_contents = f.read()
 
-        self.context = Page.DEFAULT_CONTEXT.copy()
+                # Split the contents of the file into the config and contents
+                # sections
+                config_str, contents_str = file_contents.split(Page.START_OF_CONTENT, 1)
+
+        except IOError:
+            # If file does not exist then this must be an index page
+            config_str, contents_str = "", ""
+
+        this_config = yaml.load(config_str) or {}
+
+        # TODO: If base_config has been specified, load and merge the base
+        # config here
 
         # Copy config to the context
-        for key in config:
-            if key in self.context:
-                self.context[key] = config[key]
-
-        # Set title if it has not been set
-        if not self.context["title"]:
-            self.context["title"] = Page.format_page_name(os.path.basename(filename))
+        # TODO: Append to config rather than overwriting, e.g. for extra styles
+        for key in this_config:
+            self.config[key] = this_config[key]
 
         # Replace custom elements with their HTML counterparts
-        for custom_el, replacement in config["custom_elements"].items():
-            start_tag = "<" + custom_el + ">"
-            end_tag = "</" + custom_el + ">"
+        if "custom_elements" in self.config:
+            for custom_el, replacement in self.config["custom_elements"].items():
+                start_tag = "<" + custom_el + ">"
+                end_tag = "</" + custom_el + ">"
 
-            new_start_tag, new_end_tag = replacement.split("$", 1)
+                new_start_tag, new_end_tag = replacement.split("$", 1)
 
-            contents_str = contents_str.replace(start_tag, new_start_tag)
-            contents_str = contents_str.replace(end_tag, new_end_tag)
+                contents_str = contents_str.replace(start_tag, new_start_tag)
+                contents_str = contents_str.replace(end_tag, new_end_tag)
 
         # Convert markdown to HTML
-        self.context["content"] = markdown.markdown(contents_str)
+        self.config["content"] = markdown.markdown(contents_str)
 
-
-    def to_html(self, env, global_context={}):
+    def to_html(self, env):
         """Return the entire HTML document as a string for this page"""
-        template = env.get_template(self.context["template"])
-
-        context = self.context.copy()
-        context.update(global_context)
-
-        return template.render(**context)
+        template = env.get_template(self.config["template"])
+        return template.render(self.config)
 
     @classmethod
-    def format_page_name(cls, name):
-        """Given the filename for a page, return a nicely formatted version by
-        replacing hyphens with spaces and capitalising the first letter"""
-        if name.endswith(".md"):
-            name = name[:-3]
+    def format_page_name(cls, file):
+        """Given the filename or path to a page, return a nicely formatted
+        version by replacing hyphens with spaces and capitalising the first
+        letter"""
+        if file.endswith(".md"):
+            file = file[:-3]
+
+        if file.endswith("/index"):
+            file = file[:-6]
+
+        name = os.path.basename(file)
         return name.replace("-", " ").capitalize()
-
-
-class IndexPage(Page):
-    def __init__(self, path, index):
-        self.context = Page.DEFAULT_CONTEXT.copy()
-        self.context["title"] = Page.format_page_name(os.path.basename(path))
-        self.context["template"] = "base.tmpl"
-        self.context["index"] = index

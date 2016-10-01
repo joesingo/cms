@@ -52,13 +52,13 @@
                         </a>
                         <ul class="dropdown-menu">
                             {% for subitem in item.children %}
-                            <li><a href="{{ subitem.href }}">{{ subitem.title }}</a></li>
+                            <li><a href="{{ subitem.url }}">{{ subitem.title }}</a></li>
                             {% endfor %}
                         </ul>
                     </li>
 
                     {% else %}
-                    <li><a href="{{ item.href }}">{{ item.title }}</a></li>
+                    <li><a href="{{ item.url }}">{{ item.title }}</a></li>
                     {% endif %}
                 {% endfor %}
                 </ul>
@@ -72,17 +72,15 @@
             {{ content }}
         </article>
 
-        {% if index %}
+        {% if index_page %}
             <ul>
-            {% for item in index recursive %}
-                <li><a href="{{ item.href }}">{{ item.title }}</a></li>
+            {% for item in site_index recursive %}
+                <li><a href="{{ item.url }}">{{ item.title }}</a></li>
                 {% if item.children %}
                     <ul class="collapsable">{{ loop(item.children) }}</ul>
                 {% endif %}
             {% endfor %}
             </ul>
-        {% else %}
-            No pages!
         {% endif %}
     </div>
 
