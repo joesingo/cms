@@ -1,6 +1,7 @@
+import os.path
+
 import yaml
 import markdown
-import os
 
 class Page(object):
     """A class to represent a web page. A page is loaded from a file that
@@ -9,7 +10,7 @@ class Page(object):
     # The delimiter between the YAML config section and markdown content
     START_OF_CONTENT = "\n---\n"
 
-    def __init__(self, filename, config=None, config_only=False):
+    def __init__(self, filename, config=None, config_only=False, content_dir=None):
         """Construct a Page object from a given file"""
         self.config = config or {}
 
@@ -30,7 +31,8 @@ class Page(object):
 
         # If base_config has been specified, load and merge the base config
         if "base_config" in this_config:
-            base_page = Page(this_config["base_config"], config_only=True)
+            path = os.path.join(content_dir, this_config["base_config"])
+            base_page = Page(path, config_only=True, content_dir=content_dir)
             self.config = Page.merge_configs(self.config, base_page.config)
 
         # Set default title here in case it has not been specified in this_config

@@ -1,16 +1,18 @@
 import os
+import copy
 
 from jinja2 import Environment, FileSystemLoader
-from flask import Flask, abort
-import yaml
+from flask import abort
 
 from page import Page
 
 class Site(object):
-    def __init__(self):
-        self.content_dir = "content"
-        self.templates_dir = "cms/templates"
-        self.config_file = os.path.join(self.content_dir, "config.yaml")
+    def __init__(self, config):
+        self.content_dir = config["content_dir"]
+        self.default_page_config = config["default_page_config"]
+
+        # jinja2 environment for loading templates
+        self.env = Environment(loader=FileSystemLoader(config["template_dir"]))
 
     def generate_index(self, start_dir=None, depth=None):
         """Recursively generate a page index from the given starting directory.
@@ -97,48 +99,32 @@ class Site(object):
         if path.endswith(".md"):
             path = path[:-3]
 
-        # Split path by '/'s and go through each component, stopping after we reach
-        # the content dir
-        split_path = path.split(os.sep)
-        for i, k in enumerate(split_path):
-            if k == site.content_dir:
-                i += 1
-                break
+        # Return the part of the path after content directory
+        return path.split(self.content_dir, 1)[1]
 
-        # Join together all components after the content dir
-        return "/" + "/".join(split_path[i:])
+    def get_default_page_config(self):
+        """Return the config that serves as a base for every page"""
+        return copy.deepcopy(self.default_page_config)
 
-    def get_site_config(self):
-        """Load config file that serves as a base for every page"""
-        with open(self.config_file) as f:
-            return yaml.load(f) or {}
+    def view_page(self, url):
+        """Render the specified page"""
+        url = "/" + url
 
+        # Get the site index and find page by URL
+        index = self.generate_index()
+        route = self.find_route_to_page(index, url)
 
-app = Flask(__name__)
-site = Site()
-# jinja2 environment for loading templates
-env = Environment(loader=FileSystemLoader(site.templates_dir))
+        if route:
+            default_config = self.get_default_page_config()
 
-@app.route("/<path:url>/")
-@app.route("/", defaults={"url": ""})
-def view_page(url):
-    """Render the specified page"""
-    url = os.sep + url
+            # Set site index and header links
+            default_config["site_index"] = index
+            default_config["header_links"] = self.generate_index(depth=2)
+            default_config["breadcrumbs"] = route
 
-    # Get the site index and find page by URL
-    index = site.generate_index()
-    route = site.find_route_to_page(index, url)
+            page = Page(route[-1]["path"], default_config,
+                        content_dir=self.content_dir)
+            return page.to_html(self.env)
 
-    if route:
-        default_config = site.get_site_config()["default_page_config"]
-
-        # Set site index and header links
-        default_config["site_index"] = index
-        default_config["header_links"] = site.generate_index(depth=2)
-        default_config["breadcrumbs"] = route
-
-        page = Page(route[-1]["path"], default_config)
-        return page.to_html(env)
-
-    else:
-        abort(404)
+        else:
+            abort(404)

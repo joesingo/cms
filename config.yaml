@@ -1,0 +1,18 @@
+"content_dir": "/home/joe/uni/notes-site"
+"template_dir": "/home/joe/Coding/cms/cms/templates"
+"static_dir": "/home/joe/Coding/cms/cms/static"
+
+"host": "0.0.0.0"
+"port": 5000
+
+"default_page_config":
+  "sitename": "Lecture notes"
+  "extra_head": []
+  "extra_body": []
+  "extra_script": []
+  "extra_style": []
+  "js_scripts": []
+  "stylesheets": []
+  "users":
+    - "anon"
+  "template": "base.tmpl"
