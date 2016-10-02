@@ -1,8 +1,10 @@
 
 ---
-cms is a content management system that creates a static websites from files
+cms is a content management system that creates a static website from files
 written in [Markdown](https://daringfireball.net/projects/markdown/) and
 [YAML](http://yaml.org). Its aim is to get in the way as little as possible, whilst still being fairly flexible.
+
+cms is written in Python using [Flask](http://flask.pocoo.org/).
 
 ## Configuration
 Site-wide configuration is specified in a YAML file. The following options are
@@ -56,7 +58,7 @@ separated by a line containing the string `---`.
     the templating engine to render the page template, so which
     options you need to specify depends on what your template looks like!
 
-    However some options are special and are used by cms itself:
+    However, some options are special and are used by cms itself:
 
     * **template:** The template to use to render the page. This should be a
     filename relative to the templates directory.
@@ -106,6 +108,8 @@ separated by a line containing the string `---`.
              "url": <URL for the page>,
              "path": <path to file for the page>,
              "children": [<child pages>]}
+
+        This dictionary will also contain `index_page` if the page is an index page.
 
     * **header_links:** This is a list in the same format as `site_index` and
     can be used to construct a menu for the site. Currently this is the same as
