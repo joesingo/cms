@@ -1,3 +1,6 @@
+
+---
+
 ### Things to do:
 - Improve generate_index().
     - Get full recursive listing
@@ -7,11 +10,5 @@
     - Insert page at the correct position
 
 - Config file:
-    - Specify template, static and content directories
     - Specify whether to run with flask built in server, or create wsgi socket
     - If flask server, debug mode or not
-    - Default page config
-
-- Page constructor should take argument for whether page is an index page, and
-  should not try to load from file if so. This way we can we will get an
-  exception if a base_config file does not exist

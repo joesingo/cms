@@ -42,7 +42,8 @@ class Site(object):
                     "title": Page.format_page_name(path),
                     "url": self.get_url_for(path),
                     "children": children,
-                    "path": os.path.join(path, "index.md")
+                    "path": os.path.join(path, "index.md"),
+                    "index_page": True
                 }
                 listing.append(new_dir)
 
@@ -122,8 +123,9 @@ class Site(object):
             default_config["header_links"] = self.generate_index(depth=2)
             default_config["breadcrumbs"] = route
 
+            index_page = "index_page" in route[-1]
             page = Page(route[-1]["path"], default_config,
-                        content_dir=self.content_dir)
+                        content_dir=self.content_dir, index_page=index_page)
             return page.to_html(self.env)
 
         else:

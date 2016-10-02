@@ -10,7 +10,8 @@ class Page(object):
     # The delimiter between the YAML config section and markdown content
     START_OF_CONTENT = "\n---\n"
 
-    def __init__(self, filename, config=None, config_only=False, content_dir=None):
+    def __init__(self, filename, config=None, config_only=False, content_dir=None,
+                 index_page=False):
         """Construct a Page object from a given file"""
         self.config = config or {}
 
@@ -23,9 +24,15 @@ class Page(object):
                 # TODO: Only read up to START_OF_CONTENT if config_only is True
                 config_str, contents_str = file_contents.split(Page.START_OF_CONTENT, 1)
 
-        except IOError:
-            # If file does not exist then this must be an index page
-            config_str, contents_str = "", ""
+        except IOError as e:
+            if index_page:
+                # Ignore error if this is an index page, as we do not require
+                # that the index.md actually exists
+                config_str, contents_str = "", ""
+            else:
+                # If the file does not exist and this is NOT an index page then
+                # we really should be worried, so re-raise the exception
+                raise e
 
         this_config = yaml.load(config_str) or {}
 
