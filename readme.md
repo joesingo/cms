@@ -1,6 +1,6 @@
 
 ---
-cms is a content management system that creates a website from static files
+cms is a content management system that creates a static websites from files
 written in [Markdown](https://daringfireball.net/projects/markdown/) and
 [YAML](http://yaml.org). Its aim is to get in the way as little as possible, whilst still being fairly flexible.
 
@@ -8,7 +8,17 @@ written in [Markdown](https://daringfireball.net/projects/markdown/) and
 Site-wide configuration is specified in a YAML file. The following options are
 available:
 
-* **default_page_config:** This is the default config that is used as a base
+* **content_dir:** The directory where the pages are located
+
+* **template_dir:** The directory where templates are located
+
+* **static_dir:** The directory where static files (e.g. images, js, css) are located
+
+* **host** (optional): The host address to listen on (defaults to localhost)
+
+* **port** (optional): The port to listen on (defaults to 5000)
+
+* **default_page_config** (optional): This is the default config that is used as a base
   for every page on the site (see [below](#page-config))
 
 ## Content
@@ -51,11 +61,12 @@ separated by a line containing the string `---`.
     * **template:** The template to use to render the page. This should be a
     filename relative to the templates directory.
 
-    * **base_config:** This option allows a page to inherit a config section from
-      another page. The entire config section from the parent page is loaded,
-      and the rest of the config from the child page is merged in. For list and
-      dictionary options, the options in the child page are appended to the list
-      or dictionary. For string options the parent config is overwritten.
+    * **base_config:** A file to inherit the config section from. The entire
+      config section from the parent page is loaded, and the rest of the config
+      from the child page is merged in. For list and dictionary options, the
+      options in the child page are appended to the list or dictionary. For
+      string options the parent config is overwritten. This option should be a
+      filename relative to the content directory.
 
     * **custom_elements:** This option is best explained with an example:
 
@@ -101,7 +112,7 @@ separated by a line containing the string `---`.
     `site_index` but only goes two levels deep.
 
     * **breadcrumbs:** This is a list of pages in the same format as `site_index`
-    that shows where the current page is in the heirarchy. The top level page
+    that shows the location of the current page in the heirarchy. The top level page
     is first, and the current page is last. See [here](http://ui-patterns.com/patterns/Breadcrumbs) for info about breadcrumbs.
 
     * <span id="index-page-option">**index_page:**</span>If a page is an index page (i.e. it is called index.md and
