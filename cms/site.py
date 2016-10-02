@@ -14,14 +14,12 @@ class Site(object):
         # jinja2 environment for loading templates
         self.env = Environment(loader=FileSystemLoader(config["template_dir"]))
 
-    def generate_index(self, start_dir=None, depth=None):
+    def generate_index(self, start_dir=None):
         """Recursively generate a page index from the given starting directory.
         The listing is returned as an array of pages, where each page is
-        represented in the form {"title": ..., "href": ..., children": [...]},
-        where the children array may contain other pages.
+        represented in the form {"title": ..., "url": ..., children": [...]},
+        where the children array may contain other pages"""
 
-        The depth parameter specifies the number of levels to go down, or None to
-        give the full index"""
         start_dir = start_dir or self.content_dir
         listing = []
 
@@ -29,24 +27,27 @@ class Site(object):
 
         for entry in dir_listing:
             path = os.path.join(start_dir, entry)
+
             if os.path.isdir(path):
 
-                # Only recurse if depth > 1
-                if depth is None or depth > 1:
-                    new_depth = None if depth is None else depth - 1
-                    children = self.generate_index(start_dir=path, depth=new_depth)
-                else:
-                    children = []
+                # If this entry is a directory, then generate an index for this
+                # directory
+                children = self.generate_index(start_dir=path)
 
-                new_dir = {
-                    "title": Page.format_page_name(path),
-                    "url": self.get_url_for(path),
-                    "children": children,
-                    "path": os.path.join(path, "index.md"),
-                    "index_page": True
-                }
-                listing.append(new_dir)
+                # If the index was not empty then this directory is an index
+                # page, so add to listing
+                if children:
+                    listing.append({
+                        "title": Page.format_page_name(path),
+                        "url": self.get_url_for(path),
+                        "children": children,
+                        "path": os.path.join(path, "index.md"),
+                        "index_page": True
+                    })
 
+            # If this page is a Markdown file then add to listing (unless it
+            # is index.md, since the page for this will be created when its
+            # containing directory is visited)
             elif entry.endswith(".md") and entry != "index.md":
                 listing.append({
                     "title": Page.format_page_name(path),
@@ -120,7 +121,7 @@ class Site(object):
 
             # Set site index and header links
             default_config["site_index"] = index
-            default_config["header_links"] = self.generate_index(depth=2)
+            default_config["header_links"] = index
             default_config["breadcrumbs"] = route
 
             index_page = "index_page" in route[-1]
