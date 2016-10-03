@@ -133,3 +133,10 @@ is first, and the current page is last. See
 * <span id="index-page-option">**index_page:**</span> If a page is an index page
 (i.e. it is called index.md and there are other pages beneath it), this will be
 set to True
+
+## Static files
+
+Static files such as images, js scripts, css files and such should be placed in
+the folder specifed by `static_dir` in the site-wide config file. Such files can
+then be accessed via the URL `/static/<file>`, where `<file>` is the file path
+relative to `static_dir`.

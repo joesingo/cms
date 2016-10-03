@@ -33,7 +33,7 @@ if __name__ == "__main__":
             config[opt] = default
 
     app = Flask(__name__, template_folder=config["template_dir"],
-                static_folder=config["static_dir"])
+                static_folder=config["static_dir"], static_url_path="/static")
 
     site = Site(config)
 
