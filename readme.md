@@ -89,6 +89,11 @@ separated by a line containing the string `---`.
           be converted from Markdown, so you will have to use HTML for any
           formatting.
 
+    * **page_order:** For index pages (i.e ones with other pages beneath), this
+      is a list specifying the order of child pages in the [site index](#site-index).
+      Any pages not included here will put be put in alphabetical order at the
+      end.
+
 * **Content section**
 
     This section contains the actual content for the page, written in Markdown.
@@ -104,10 +109,10 @@ section) as HTML. You will *need* to use this one in your templates, as
 there will be no content on the page otherwise.
 
 * **title:** If not already specifed in the page config, cms will set this to a
-defaul value for the page title based on the filename. It does this by replacing
+default value for the page title based on the filename. It does this by replacing
 hyphens and underscores with spaces and capitalising the first letter.
 
-* **site_index:** This is a list containing information about the page heirarchy
+* <span id="site-index">**site_index:**</span> This is a list containing information about the page heirarchy
 for the site. Each page is a dictionary of the form:
 
         {"title": <page title based on filename>,
