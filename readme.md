@@ -2,7 +2,8 @@
 ---
 cms is a content management system that creates a static website from files
 written in [Markdown](https://daringfireball.net/projects/markdown/) and
-[YAML](http://yaml.org). Its aim is to get in the way as little as possible, whilst still being fairly flexible.
+[YAML](http://yaml.org). Its aim is to get in the way as little as possible,
+whilst still being fairly flexible.
 
 cms is written in Python using [Flask](http://flask.pocoo.org/).
 
@@ -54,13 +55,13 @@ separated by a line containing the string `---`.
 * <span id="page-config">**Config section**</span>
 
     This section is written in YAML and defines various
-    configuration options for the page. The options specified here are passed to
-    the templating engine to render the page template, so which
-    options you need to specify depends on what your template looks like!
+    configuration options for the page. The options specified here are passed as
+    variable to the page template, so which options you need to specify depends
+    on what your template looks like!
 
     However, some options are special and are used by cms itself:
 
-    * **template:** The template to use to render the page. This should be a
+    * **template** (required): The template to use to render the page. This should be a
     filename relative to the templates directory.
 
     * **base_config:** A file to inherit the config section from. The entire
@@ -88,40 +89,47 @@ separated by a line containing the string `---`.
           be converted from Markdown, so you will have to use HTML for any
           formatting.
 
-    cms will also add some extra options that will be passed to the templating
-    engine that you may wish to make use of:
-
-    * **content:** This contains the contents of the page (from the contents
-    section) as HTML. You will *need* to use this one in your templates, as
-    there will be no content on the page otherwise.
-
-    * **title:** If not already specifed, cms will set this to a default
-    value for the page title based on the filename. It does this by replacing
-    hyphens and underscores with spaces and capitalising the first letter. If you
-    want to make use of this feature then make sure to use `title` as the variable
-    for the page title in your templates.
-
-    * **site_index:** This is a list containing information about all pages on
-    the site. Each page is a dictionary in the format:
-
-            {"title": <page title based on filename>,
-             "url": <URL for the page>,
-             "path": <path to file for the page>,
-             "children": [<child pages>]}
-
-        This dictionary will also contain `index_page` if the page is an index page.
-
-    * **header_links:** This is a list in the same format as `site_index` and
-    can be used to construct a menu for the site. Currently this is the same as
-    `site_index` but only goes two levels deep.
-
-    * **breadcrumbs:** This is a list of pages in the same format as `site_index`
-    that shows the location of the current page in the heirarchy. The top level page
-    is first, and the current page is last. See [here](http://ui-patterns.com/patterns/Breadcrumbs) for info about breadcrumbs.
-
-    * <span id="index-page-option">**index_page:**</span>If a page is an index page (i.e. it is called index.md and
-    there are other pages beneath it), `index_page` will be set to True.
-
 * **Content section**
 
     This section contains the actual content for the page, written in Markdown.
+
+## Templates
+
+cms uses [jinja2](http://jinja.pocoo.org/docs/dev/) to render templates. Any
+option specified in the [config section](#page-config) of a page is passed
+as a variable to the template. In addition, cms adds some variables itself:
+
+* **content:** This contains the contents of the page (from the contents
+section) as HTML. You will *need* to use this one in your templates, as
+there will be no content on the page otherwise.
+
+* **title:** If not already specifed in the page config, cms will set this to a
+defaul value for the page title based on the filename. It does this by replacing
+hyphens and underscores with spaces and capitalising the first letter.
+
+* **site_index:** This is a list containing information about the page heirarchy
+for the site. Each page is a dictionary of the form:
+
+        {"title": <page title based on filename>,
+         "url": <URL for the page>,
+         "path": <path to file for the page>,
+         "children": [<child pages>]}
+
+    Where `children` is a list of child pages in the same format.
+
+* **sub_index:** This is a list in the same format as `site_index` that only
+  includes pages beneath the current page in the navigational heirarchy. This
+  variable is only present when the page is an index page.
+
+* **header_links:** This is a list in the same format as `site_index` and
+can be used to construct a menu for the site. Currently this is the same as
+`site_index`.
+
+* **breadcrumbs:** This is a list of pages in the same format as `site_index`
+that shows the location of the current page in the heirarchy. The top level page
+is first, and the current page is last. See
+[here](http://ui-patterns.com/patterns/Breadcrumbs) for info about breadcrumbs.
+
+* <span id="index-page-option">**index_page:**</span> If a page is an index page
+(i.e. it is called index.md and there are other pages beneath it), this will be
+set to True
