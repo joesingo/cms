@@ -15,6 +15,8 @@ class Site(object):
         # jinja2 environment for loading templates
         self.env = Environment(loader=FileSystemLoader(config["template_dir"]))
 
+        self.home = self.generate_index()
+
     def generate_index(self, start_dir=None):
         """Recursively generate a page index from the given starting directory.
         Return the root page as a dictionary in the form:
@@ -69,6 +71,26 @@ class Site(object):
                 })
                 root["empty"] = False
 
+        # Sort child pages by order specified in page config (if present)
+        if len(root["children"]) > 1:
+            root_page = Page(root["path"], {}, content_dir=self.content_dir,
+                             index_page=True, config_only=True)
+
+            if "page_order" in root_page.config:
+                ordered_pages = []
+
+                for child_page_name in root_page.config["page_order"]:
+                    for p in root["children"]:
+                        if p["path"].endswith(child_page_name):
+                            ordered_pages.append(p)
+
+                # Put pages that were not specified in page_order at the end in
+                # alphabetical order
+                not_included = [p for p in root["children"] if p not in ordered_pages]
+                not_included.sort(key=lambda p: p["title"])
+
+                root["children"] = ordered_pages + not_included
+
         return root
 
     def find_route_to_page(self, root, url):
@@ -108,9 +130,8 @@ class Site(object):
         url = "/" + url
 
         # Get the site index and find page by URL
-        home = self.generate_index()
-        index = home["children"]
-        route = self.find_route_to_page(home, url)  # Get breadcrumbs
+        index = self.home["children"]
+        route = self.find_route_to_page(self.home, url)  # Get breadcrumbs
 
         if route:
             default_config = self.get_default_page_config()
