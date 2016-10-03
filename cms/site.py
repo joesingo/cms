@@ -6,6 +6,7 @@ from flask import abort
 
 from page import Page
 
+
 class Site(object):
     def __init__(self, config):
         self.content_dir = config["content_dir"]
@@ -16,12 +17,26 @@ class Site(object):
 
     def generate_index(self, start_dir=None):
         """Recursively generate a page index from the given starting directory.
-        The listing is returned as an array of pages, where each page is
-        represented in the form {"title": ..., "url": ..., children": [...]},
-        where the children array may contain other pages"""
-
+        Return the root page as a dictionary in the form:
+            {"title": ..., "url": ..., children": [...]},
+        where the children contains other pages represented in the same
+        format"""
         start_dir = start_dir or self.content_dir
-        listing = []
+
+        root = {
+            "title": Page.format_page_name(start_dir),
+            "url": self.get_url_for(start_dir),
+            "children": [],
+            "path": os.path.join(start_dir, "index.md"),
+            "index_page": True,
+            "empty": True  # This is to keep track of whether this dict actually
+                           # represents a page, i.e. if there is a .md file
+                           # somewhere underneath it
+        }
+
+        # Home page is a special case where we need to set the title manually
+        if start_dir == self.content_dir:
+            root["title"] = "Home"
 
         dir_listing = os.listdir(start_dir)
 
@@ -32,67 +47,46 @@ class Site(object):
 
                 # If this entry is a directory, then generate an index for this
                 # directory
-                children = self.generate_index(start_dir=path)
+                sub_page = self.generate_index(start_dir=path)
 
                 # If the index was not empty then this directory is an index
                 # page, so add to listing
-                if children:
-                    listing.append({
-                        "title": Page.format_page_name(path),
-                        "url": self.get_url_for(path),
-                        "children": children,
-                        "path": os.path.join(path, "index.md"),
-                        "index_page": True
-                    })
+                if not sub_page["empty"]:
+                    del sub_page["empty"]
+                    root["children"].append(sub_page)
+                    root["empty"] = False
 
-            # If this page is a Markdown file then add to listing (unless it
-            # is index.md, since the page for this will be created when its
-            # containing directory is visited)
-            elif entry.endswith(".md") and entry != "index.md":
-                listing.append({
+            elif entry == "index.md":
+                root["empty"] = False
+
+            # If this page is a Markdown file then add to listing
+            elif entry.endswith(".md"):
+                root["children"].append({
                     "title": Page.format_page_name(path),
                     "url": self.get_url_for(path),
                     "children": [],
                     "path": path
                 })
+                root["empty"] = False
 
-        # If we are getting the root level pages then include home page
-        if start_dir == self.content_dir:
-            home = {"title": "Home",
-                    "url": "/",
-                    "children": [],
-                    "path": os.path.join(self.content_dir, "index.md")}
-            listing.insert(0, home)
+        return root
 
-        return listing
+    def find_route_to_page(self, root, url):
+        """Find a page by URL in the child pages of the root page provided.
+        Return an route through the heirarchy of pages, e.g. for a page
+        /articles/maths/calculus, the route would be:
+            [/articles, /articles/maths, /articles/maths/calculus].
+        Return False if the page is not found"""
+        if root["url"] == url:
+            return [root]
 
-    def find_route_to_page(self, index, url):
-        """Find the page in the index provided whose URL matches the URL
-        provided. Return an route through the heirarchy of pages, e.g.
-        for a page /articles/maths/calculus, the route would be
-        [/articles, /articles/maths, /articles/maths/calculus]. Return False if
-        the page is not found"""
+        for child in root["children"]:
+            route = self.find_route_to_page(child, url)
 
-        def find_route(page, url):
-            p = page.copy()
-            del p["children"]
-            if p["url"] == url:
-                return [p]
-            for child in page["children"]:
-                route = find_route(child, url)
-                if route:
-                    return [p] + route
-            return False
+            if route:
+                return [root] + route
 
-        root = {"url": None, "children": index}
-        route = find_route(root, url)
-
-        if route:
-            # Return from index 1 onwards since we do not want to include root
-            return route[1:]
-        else:
-            # Page was not found
-            return False
+        return False
 
     def get_url_for(self, path):
         """Return the URL for the page at the specified path"""
@@ -102,7 +96,8 @@ class Site(object):
             path = path[:-3]
 
         # Return the part of the path after content directory
-        return path.split(self.content_dir, 1)[1]
+        url = path.split(self.content_dir, 1)[1]
+        return url or "/"
 
     def get_default_page_config(self):
         """Return the config that serves as a base for every page"""
@@ -113,8 +108,9 @@ class Site(object):
         url = "/" + url
 
         # Get the site index and find page by URL
-        index = self.generate_index()
-        route = self.find_route_to_page(index, url)
+        home = self.generate_index()
+        index = home["children"]
+        route = self.find_route_to_page(home, url)  # Get breadcrumbs
 
         if route:
             default_config = self.get_default_page_config()
@@ -125,6 +121,9 @@ class Site(object):
             default_config["breadcrumbs"] = route
 
             index_page = "index_page" in route[-1]
+            if index_page:
+                default_config["sub_index"] = route[-1]["children"]
+
             page = Page(route[-1]["path"], default_config,
                         content_dir=self.content_dir, index_page=index_page)
             return page.to_html(self.env)

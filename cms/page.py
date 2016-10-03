@@ -67,7 +67,7 @@ class Page(object):
 
             # Set a flag in the config if this is an index page, as the template
             # may want to do something different in this case
-            if filename.endswith("index.md"):
+            if index_page:
                 self.config["index_page"] = True
 
     def to_html(self, env):

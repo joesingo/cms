@@ -98,7 +98,7 @@
 
         {% if index_page %}
             <ul class="site-index">
-            {% for item in site_index recursive %}
+            {% for item in sub_index recursive %}
                 <li><a href="{{ item.url }}">{{ item.title }}</a></li>
                 {% if item.children %}
                     <ul class="collapsable">{{ loop(item.children) }}</ul>
