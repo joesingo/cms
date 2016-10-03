@@ -29,9 +29,9 @@ class Site(object):
             "children": [],
             "path": os.path.join(start_dir, "index.md"),
             "index_page": True,
-            "empty": True  # This is to keep track of whether this dict actually
-                           # represents a page, i.e. if there is a .md file
-                           # somewhere underneath it
+            "empty": True  # This is to keep track of whether this dict
+                           # actually represents a page, i.e. if there is a .md
+                           # file somewhere underneath it
         }
 
         # Home page is a special case where we need to set the title manually

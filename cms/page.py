@@ -3,6 +3,7 @@ import os.path
 import yaml
 import markdown
 
+
 class Page(object):
     """A class to represent a web page. A page is loaded from a file that
     contains a YAML config section followed by the content as a markdown"""
@@ -10,8 +11,8 @@ class Page(object):
     # The delimiter between the YAML config section and markdown content
     START_OF_CONTENT = "\n---\n"
 
-    def __init__(self, filename, config=None, config_only=False, content_dir=None,
-                 index_page=False):
+    def __init__(self, filename, config=None, config_only=False,
+                 content_dir=None, index_page=False):
         """Construct a Page object from a given file"""
         self.config = config or {}
 
@@ -22,7 +23,8 @@ class Page(object):
                 # Split the contents of the file into the config and contents
                 # sections
                 # TODO: Only read up to START_OF_CONTENT if config_only is True
-                config_str, contents_str = file_contents.split(Page.START_OF_CONTENT, 1)
+                delim = Page.START_OF_CONTENT
+                config_str, contents_str = file_contents.split(delim, 1)
 
         except IOError as e:
             if index_page:
@@ -42,7 +44,8 @@ class Page(object):
             base_page = Page(path, config_only=True, content_dir=content_dir)
             self.config = Page.merge_configs(self.config, base_page.config)
 
-        # Set default title here in case it has not been specified in this_config
+        # Set default title here in case it has not been specified in
+        # this_config
         self.config["title"] = Page.format_page_name(filename)
 
         self.config = Page.merge_configs(self.config, this_config)
@@ -53,20 +56,21 @@ class Page(object):
 
             # Replace custom elements with their HTML counterparts
             if "custom_elements" in self.config:
-                for custom_el, replacement in self.config["custom_elements"].items():
+                for custom_el, repl in self.config["custom_elements"].items():
                     start_tag = "<" + custom_el + ">"
                     end_tag = "</" + custom_el + ">"
 
-                    new_start_tag, new_end_tag = replacement.split("$", 1)
+                    new_start_tag, new_end_tag = repl.split("$", 1)
 
-                    contents_str = contents_str.replace(start_tag, new_start_tag)
+                    contents_str = contents_str.replace(start_tag,
+                                                        new_start_tag)
                     contents_str = contents_str.replace(end_tag, new_end_tag)
 
             # Convert markdown to HTML
             self.config["content"] = markdown.markdown(contents_str)
 
-            # Set a flag in the config if this is an index page, as the template
-            # may want to do something different in this case
+            # Set a flag in the config if this is an index page, as the
+            # template may want to do something different in this case
             if index_page:
                 self.config["index_page"] = True
 
