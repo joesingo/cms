@@ -61,6 +61,7 @@
                             <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu">
+                            <li><a href="{{ item.url }}">{{ item.title }}</a></li>
                             {% for subitem in item.children %}
                             <li><a href="{{ subitem.url }}">{{ subitem.title }}</a></li>
                             {% endfor %}
