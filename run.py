@@ -5,10 +5,11 @@ from flask import Flask
 
 from cms.site import Site
 
-REQUIRED_OPTIONS = ["template_dir", "content_dir", "static_dir"]
+REQUIRED_OPTIONS = ["content_dir"]
 # Optional options specified as (key, default value)
 OPTIONAL_OPTIONS = [("default_page_config", {}), ("host", "localhost"),
-                    ("port", 5000)]
+                    ("port", 5000), ("template_dir", None),
+                    ("static_dir", None)]
 
 if __name__ == "__main__":
     config_file = sys.argv[1]
@@ -30,7 +31,14 @@ if __name__ == "__main__":
     # Set default values for optional options are are not present
     for opt, default in OPTIONAL_OPTIONS:
         if opt not in config:
-            config[opt] = default
+
+            # Make template and static directories default to the same place as
+            # content
+            if opt == "template_dir" or opt == "static_dir":
+                config[opt] = config["content_dir"]
+
+            else:
+                config[opt] = default
 
     app = Flask(__name__, template_folder=config["template_dir"],
                 static_folder=config["static_dir"], static_url_path="/static")

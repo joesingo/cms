@@ -86,7 +86,8 @@ class Site(object):
 
                 # Put pages that were not specified in page_order at the end in
                 # alphabetical order
-                not_included = [p for p in root["children"] if p not in ordered_pages]
+                not_included = [p for p in root["children"]
+                                if p not in ordered_pages]
                 not_included.sort(key=lambda p: p["title"])
 
                 root["children"] = ordered_pages + not_included

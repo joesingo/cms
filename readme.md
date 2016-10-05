@@ -13,9 +13,11 @@ available:
 
 * **content_dir:** The directory where the pages are located
 
-* **template_dir:** The directory where templates are located
+* **template_dir** (optional): The directory where templates are located (defaults
+  to the same as `content_dir`)
 
-* **static_dir:** The directory where static files (e.g. images, js, css) are located
+* **static_dir** (optional):  The directory where static files (e.g. images, js,
+  css) are located (defaults to the same as `content_dir`)
 
 * **host** (optional): The host address to listen on (defaults to localhost)
 
@@ -84,10 +86,6 @@ separated by a line containing the string `---`.
 
           This option can be used like a macro to avoid writing too much HTML
           in your Markdown.
-
-          One caveat is that the content between custom element tags will **NOT**
-          be converted from Markdown, so you will have to use HTML for any
-          formatting.
 
     * **page_order:** For index pages (i.e ones with other pages beneath), this
       is a list specifying the order of child pages in the [site index](#site-index).
