@@ -54,6 +54,9 @@ class Page(object):
         # the config
         if not config_only:
 
+            # Convert markdown to HTML
+            contents_str = markdown.markdown(contents_str)
+
             # Replace custom elements with their HTML counterparts
             if "custom_elements" in self.config:
                 for custom_el, repl in self.config["custom_elements"].items():
@@ -66,8 +69,7 @@ class Page(object):
                                                         new_start_tag)
                     contents_str = contents_str.replace(end_tag, new_end_tag)
 
-            # Convert markdown to HTML
-            self.config["content"] = markdown.markdown(contents_str)
+            self.config["content"] = contents_str
 
             # Set a flag in the config if this is an index page, as the
             # template may want to do something different in this case
