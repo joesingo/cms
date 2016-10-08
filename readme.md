@@ -13,11 +13,13 @@ available:
 
 * **content_dir:** The directory where the pages are located
 
-* **template_dir** (optional): The directory where templates are located (defaults
-  to the same as `content_dir`)
+* **template_dir** (optional): The directory where custom templates are located
+  (defaults to the same as `content_dir`). Note that templates will also be
+  loaded from `default_templates` in the same directory as cms.
 
-* **static_dir** (optional):  The directory where static files (e.g. images, js,
-  css) are located (defaults to the same as `content_dir`)
+* **static_dir** (optional):  The directory where custom static files (e.g. images,
+  js, css) are located (defaults to the same as `content_dir`). Note that static
+  files will also be served from `default_static` in the same directory as cms.
 
 * **host** (optional): The host address to listen on (defaults to localhost)
 

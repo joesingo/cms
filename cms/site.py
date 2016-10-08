@@ -2,20 +2,27 @@ import os
 import copy
 
 from jinja2 import Environment, FileSystemLoader
-from flask import abort
+from flask import abort, send_from_directory
+from werkzeug.exceptions import NotFound
 
 from cms.page import Page
 
 
 class Site(object):
-    def __init__(self, config):
+    def __init__(self, config, app):
         self.content_dir = config["content_dir"]
         self.default_page_config = config["default_page_config"]
+        self.static_dirs = config["static_dirs"]
 
         # jinja2 environment for loading templates
-        self.env = Environment(loader=FileSystemLoader(config["template_dir"]))
+        self.env = Environment(loader=FileSystemLoader(config["template_dirs"]))
 
         self.home = self.generate_index()
+
+        app.route("/<path:url>/")(self.view_page)
+        app.route("/", defaults={"url": ""})(self.view_page)
+
+        app.route("/static/<path:filename>")(self.get_static_file)
 
     def generate_index(self, start_dir=None):
         """Recursively generate a page index from the given starting directory.
@@ -152,3 +159,17 @@ class Site(object):
 
         else:
             abort(404)
+
+    def get_static_file(self, filename):
+        """Serve a static file from one of the directories listed in
+        self.static_dirs"""
+        for static_dir in self.static_dirs:
+            try:
+                return send_from_directory(static_dir, filename)
+
+            except NotFound as e:
+                pass
+
+        # If we reach here then file is not in any of the static dirs, so raise
+        # NotFound exception
+        raise e

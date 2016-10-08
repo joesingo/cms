@@ -40,12 +40,15 @@ if __name__ == "__main__":
             else:
                 config[opt] = default
 
-    app = Flask(__name__, template_folder=config["template_dir"],
-                static_folder=config["static_dir"], static_url_path="/static")
+    # Set static_url_path to something that will not be used, since Site will
+    # deal with serving static files, since we need to serve from multiple
+    # locations
+    app = Flask(__name__, static_url_path="/flask_static")
 
-    site = Site(config)
+    # Add default template and static dirs to config
+    config["template_dirs"] = [config["template_dir"], "default_templates"]
+    config["static_dirs"] = [config["static_dir"], "default_static"]
 
-    app.route("/<path:url>/")(site.view_page)
-    app.route("/", defaults={"url": ""})(site.view_page)
+    site = Site(config, app)
 
     app.run(debug=True, host=config["host"], port=config["port"])
