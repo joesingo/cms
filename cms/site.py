@@ -4,7 +4,7 @@ import copy
 from jinja2 import Environment, FileSystemLoader
 from flask import abort
 
-from page import Page
+from cms.page import Page
 
 
 class Site(object):
@@ -119,7 +119,7 @@ class Site(object):
             path = path[:-3]
 
         # Return the part of the path after content directory
-        url = path.split(self.content_dir, 1)[1]
+        url = path.split(self.content_dir, 1)[1].replace(os.sep, "/")
         return url or "/"
 
     def get_default_page_config(self):
