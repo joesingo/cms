@@ -1,5 +1,6 @@
 import os
 import copy
+import shutil
 
 from jinja2 import Environment, FileSystemLoader
 from flask import abort, send_from_directory
@@ -179,13 +180,42 @@ class Site(object):
         # NotFound exception
         raise e
 
+    def export_static(self, export_dir):
+        """Copy certain files from static dirs to the provided export directory
+        """
+        allowed_types = ["js", "css", "png", "jpg", "gif"]
+
+        for static_dir in self.static_dirs:
+            for dirpath, _, filenames in os.walk(static_dir):
+                for f in filenames:
+
+                    # Check this file is of one of the allowed types to be
+                    # copied
+                    for ending in allowed_types:
+                        if f.endswith("." + ending):
+                            p = os.path.join(dirpath, f)
+
+                            # Remove static dir part of path and leading slash
+                            # if present
+                            filename = p.replace(static_dir, "")
+                            if filename.startswith(os.sep):
+                                filename = filename[1:]
+
+                            filename = os.path.join(export_dir, filename)
+                            dirname = os.path.dirname(filename)
+
+                            # Create directory if it does not exist
+                            if not os.path.isdir(dirname):
+                                os.makedirs(dirname)
+
+                            # Copy the file
+                            shutil.copy(p, filename)
+
     def export(self, export_dir, base_page=None):
         """Generate the HTML for all pages in the site and save them at the
         specified location"""
         if base_page is None:
             base_page = self.home
-
-        # TODO: Figure out a solution for copying static files
 
         # Get filename from base_page["path"]
         filename = base_page["path"].replace(self.content_dir, "")
@@ -207,7 +237,7 @@ class Site(object):
         # Create the directory for this file if it does not exist
         dirname = os.path.dirname(filename)
         if not os.path.isdir(dirname):
-            os.mkdir(dirname)
+            os.makedirs(dirname)
 
         # Write the actual HTML for the page to the file
         with open(filename, "w") as f:
