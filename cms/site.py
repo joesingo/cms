@@ -139,7 +139,8 @@ class Site(object):
 
     def view_page(self, url):
         """Render the specified page"""
-        url = "/" + url
+        if not url.startswith("/"):
+            url = "/" + url
 
         # Get the site index and find page by URL
         index = self.home["children"]
@@ -177,3 +178,40 @@ class Site(object):
         # If we reach here then file is not in any of the static dirs, so raise
         # NotFound exception
         raise e
+
+    def export(self, export_dir, base_page=None):
+        """Generate the HTML for all pages in the site and save them at the
+        specified location"""
+        if base_page is None:
+            base_page = self.home
+
+        # TODO: Figure out a solution for copying static files
+
+        # Get filename from base_page["path"]
+        filename = base_page["path"].replace(self.content_dir, "")
+        filename = filename.replace(".md", ".html")
+
+        # Remove leading directory seperator if present
+        if filename.startswith(os.sep):
+            filename = filename[1:]
+
+        filename = os.path.join(export_dir, filename)
+
+        # If this page is not an index page, then put it in its own directory
+        # so we do not have to add index.html
+        if not filename.endswith(os.sep + "index.html"):
+            # Remove .html
+            filename = filename[:-len(".html")]
+            filename = os.path.join(filename, "index.html")
+
+        # Create the directory for this file if it does not exist
+        dirname = os.path.dirname(filename)
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+
+        # Write the actual HTML for the page to the file
+        with open(filename, "w") as f:
+            f.write(self.view_page(base_page["url"]))
+
+        for child in base_page["children"]:
+            self.export(export_dir, base_page=child)

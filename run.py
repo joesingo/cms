@@ -51,4 +51,7 @@ if __name__ == "__main__":
 
     site = Site(config, app)
 
-    app.run(debug=True, host=config["host"], port=config["port"])
+    if "export_to" in config:
+        site.export(config["export_to"])
+    else:
+        app.run(debug=True, host=config["host"], port=config["port"])

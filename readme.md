@@ -28,6 +28,10 @@ available:
 * **default_page_config** (optional): This is the default config that is used as a base
   for every page on the site (see [below](#page-config))
 
+* **export_to** (optional): The directory to export all pages as HTML files to. If
+  this option is specified then `host` and `port` have no effect since a webserver
+  is not started by cms
+
 ## Content
 Content is structured in a heirarchal manner that can go as many layers deep as you
 want. Consider the following directory structure
