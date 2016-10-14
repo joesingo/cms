@@ -19,10 +19,14 @@ class Site(object):
 
         self.home = self.generate_index()
 
-        app.route("/<path:url>/")(self.view_page)
-        app.route("/", defaults={"url": ""})(self.view_page)
+        app.route("/<path:url>/")(self.handle_url)
+        app.route("/", defaults={"url": ""})(self.handle_url)
 
-        app.route("/static/<path:filename>")(self.get_static_file)
+    def handle_url(self, url):
+        try:
+            return self.view_page(url)
+        except NotFound:
+            return self.get_static_file(url)
 
     def generate_index(self, start_dir=None):
         """Recursively generate a page index from the given starting directory.

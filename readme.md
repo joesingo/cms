@@ -66,7 +66,7 @@ separated by a line containing the string `---`.
     However, some options are special and are used by cms itself:
 
     * **template** (required): The template to use to render the page. This should be a
-    filename relative to the templates directory.
+    filename relative to one of the templates directories.
 
     * **base_config:** A file to inherit the config section from. The entire
       config section from the parent page is loaded, and the rest of the config
@@ -143,5 +143,5 @@ set to True
 
 Static files such as images, js scripts, css files and such should be placed in
 the folder specifed by `static_dir` in the site-wide config file. Such files can
-then be accessed via the URL `/static/<file>`, where `<file>` is the file path
+then be accessed via the URL `/<file>`, where `<file>` is the file path
 relative to `static_dir`.
