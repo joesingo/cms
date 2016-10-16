@@ -93,8 +93,11 @@ class Page(object):
             file = file[:-6]
 
         name = os.path.basename(file)
-        name = name.replace("-", " ").capitalize()
-        name = name.replace("_", " ").capitalize()
+        name = name.replace("-", " ")
+        name = name.replace("_", " ")
+
+        # Capitalize first letter
+        name = name[0].upper() + name[1:]
         return name
 
     @classmethod
