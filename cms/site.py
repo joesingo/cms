@@ -183,7 +183,7 @@ class Site(object):
     def export_static(self, export_dir):
         """Copy certain files from static dirs to the provided export directory
         """
-        allowed_types = ["js", "css", "png", "jpg", "gif"]
+        allowed_types = ["js", "css", "png", "jpg", "gif", "html"]
 
         for static_dir in self.static_dirs:
             for dirpath, _, filenames in os.walk(static_dir):

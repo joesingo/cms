@@ -1,4 +1,5 @@
-"content_dir": "/home/joe/Coding/cms/content"
+"content_dir": "/home/joe/Coding/cms/content/content"
+"static_dir": "/home/joe/Coding/cms/content/static"
 
 "default_page_config":
   "sitename": "Lecture notes"
