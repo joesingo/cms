@@ -11,15 +11,14 @@ cms is written in Python using [Flask](http://flask.pocoo.org/).
 Site-wide configuration is specified in a YAML file. The following options are
 available:
 
-* **content_dir:** The directory where the pages are located
+* **content_dir:** The directory where the pages, templates and static files are
+  located.
 
-* **template_dir** (optional): The directory where custom templates are located
-  (defaults to the same as `content_dir`). Note that templates will also be
-  loaded from `default_templates` in the same directory as cms.
+* **template_dirs** (optional): A list of additional directories to search for
+  templates in.
 
-* **static_dir** (optional):  The directory where custom static files (e.g. images,
-  js, css) are located (defaults to the same as `content_dir`). Note that static
-  files will also be served from `default_static` in the same directory as cms.
+* **static_dir** (optional): A list of additional directories to search for static
+  files (e.g. images, js, css).
 
 * **host** (optional): The host address to listen on (defaults to localhost)
 
@@ -30,7 +29,7 @@ available:
 
 * **export_to** (optional): The directory to export all pages as HTML files to. If
   this option is specified then `host` and `port` have no effect since a webserver
-  is not started by cms
+  is not started by cms.
 
 ## Content
 Content is structured in a heirarchal manner that can go as many layers deep as you
@@ -146,6 +145,6 @@ set to True
 ## Static files
 
 Static files such as images, js scripts, css files and such should be placed in
-the folder specifed by `static_dir` in the site-wide config file. Such files can
-then be accessed via the URL `/<file>`, where `<file>` is the file path
-relative to `static_dir`.
+the folder specifed by `content_dir` in the site-wide config file, or in any of
+the directories listed in `static_dirs`. Such files can then be accessed via the
+URL `/<file>`, where `<file>` is the file path relative to one of the static dirs.

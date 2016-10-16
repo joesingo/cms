@@ -1,5 +1,10 @@
-"content_dir": "/home/joe/Coding/cms/content/content"
-"static_dir": "/home/joe/Coding/cms/content/static"
+"content_dir": "/home/joe/uni/notes-site/content"
+"template_dirs":
+  - "/home/joe/Coding/cms/example_templates"
+
+"static_dirs":
+  - "/home/joe/uni/notes-site/static"
+  - "/home/joe/Coding/cms/example_static"
 
 "default_page_config":
   "sitename": "Lecture notes"

@@ -8,8 +8,8 @@ from cms.site import Site
 REQUIRED_OPTIONS = ["content_dir"]
 # Optional options specified as (key, default value)
 OPTIONAL_OPTIONS = [("default_page_config", {}), ("host", "localhost"),
-                    ("port", 5000), ("template_dir", None),
-                    ("static_dir", None)]
+                    ("port", 5000), ("template_dirs", []),
+                    ("static_dirs", [])]
 
 if __name__ == "__main__":
     config_file = sys.argv[1]
@@ -31,23 +31,16 @@ if __name__ == "__main__":
     # Set default values for optional options are are not present
     for opt, default in OPTIONAL_OPTIONS:
         if opt not in config:
-
-            # Make template and static directories default to the same place as
-            # content
-            if opt == "template_dir" or opt == "static_dir":
-                config[opt] = config["content_dir"]
-
-            else:
-                config[opt] = default
+            config[opt] = default
 
     # Set static_url_path to something that will not be used, since Site will
     # deal with serving static files, since we need to serve from multiple
     # locations
     app = Flask(__name__, static_url_path="/flask_static")
 
-    # Add default template and static dirs to config
-    config["template_dirs"] = [config["template_dir"], "default_templates"]
-    config["static_dirs"] = [config["static_dir"], "default_static"]
+    # Add content_dir to template_dirs and static_dirs
+    config["template_dirs"].append(config["content_dir"])
+    config["static_dirs"].append(config["content_dir"])
 
     site = Site(config, app)
 
