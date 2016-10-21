@@ -14,6 +14,7 @@ class Site(object):
         self.content_dir = config["content_dir"]
         self.default_page_config = config["default_page_config"]
         self.static_dirs = config["static_dirs"]
+        self.static_types = config["static_filetypes"]
 
         # jinja2 environment for loading templates
         self.env = Environment(loader=FileSystemLoader(config["template_dirs"]))
@@ -183,15 +184,13 @@ class Site(object):
     def export_static(self, export_dir):
         """Copy certain files from static dirs to the provided export directory
         """
-        allowed_types = ["js", "css", "png", "jpg", "gif", "html"]
-
         for static_dir in self.static_dirs:
             for dirpath, _, filenames in os.walk(static_dir):
                 for f in filenames:
 
                     # Check this file is of one of the allowed types to be
                     # copied
-                    for ending in allowed_types:
+                    for ending in self.static_types:
                         if f.endswith("." + ending):
                             p = os.path.join(dirpath, f)
 

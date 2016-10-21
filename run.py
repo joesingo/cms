@@ -9,7 +9,9 @@ REQUIRED_OPTIONS = ["content_dir"]
 # Optional options specified as (key, default value)
 OPTIONAL_OPTIONS = [("default_page_config", {}), ("host", "localhost"),
                     ("port", 5000), ("template_dirs", []),
-                    ("static_dirs", [])]
+                    ("static_dirs", []),
+                    ("static_filetypes", ["js", "css", "png", "jpg", "gif",
+                                          "html"])]
 
 if __name__ == "__main__":
     config_file = sys.argv[1]

@@ -31,6 +31,10 @@ available:
   this option is specified then `host` and `port` have no effect since a webserver
   is not started by cms.
 
+* **static_filetypes** (optional): A list of filetypes which determines which static
+  files are included when the site is exported (i.e. `export_to` is set). The
+  default list is: js, css, png, jpg, gif, html.
+
 ## Content
 Content is structured in a heirarchal manner that can go as many layers deep as you
 want. Consider the following directory structure
