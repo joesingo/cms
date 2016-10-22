@@ -11,30 +11,34 @@ class Page(object):
     # The delimiter between the YAML config section and markdown content
     START_OF_CONTENT = "\n---\n"
 
-    def __init__(self, filename, config=None, config_only=False,
+    def __init__(self, filename=None, config=None, config_only=False,
                  content_dir=None, index_page=False):
         """Construct a Page object from a given file"""
         self.config = config or {}
 
-        try:
-            with open(filename) as f:
-                file_contents = f.read()
+        config_str, contents_str = "", ""
 
-                # Split the contents of the file into the config and contents
-                # sections
-                # TODO: Only read up to START_OF_CONTENT if config_only is True
-                delim = Page.START_OF_CONTENT
-                config_str, contents_str = file_contents.split(delim, 1)
+        # Load config from a file is a file has been specified
+        if filename:
+            try:
+                with open(filename) as f:
+                    file_contents = f.read()
 
-        except IOError as e:
-            if index_page:
-                # Ignore error if this is an index page, as we do not require
-                # that the index.md actually exists
-                config_str, contents_str = "", ""
-            else:
-                # If the file does not exist and this is NOT an index page then
-                # we really should be worried, so re-raise the exception
-                raise e
+                    # Split the contents of the file into the config and contents
+                    # sections
+                    # TODO: Only read up to START_OF_CONTENT if config_only is True
+                    delim = Page.START_OF_CONTENT
+                    config_str, contents_str = file_contents.split(delim, 1)
+
+            except IOError as e:
+                if index_page:
+                    # Ignore error if this is an index page, as we do not require
+                    # that the index.md actually exists
+                    config_str, contents_str = "", ""
+                else:
+                    # If the file does not exist and this is NOT an index page then
+                    # we really should be worried, so re-raise the exception
+                    raise e
 
         this_config = yaml.load(config_str) or {}
 
@@ -46,7 +50,8 @@ class Page(object):
 
         # Set default title here in case it has not been specified in
         # this_config
-        self.config["title"] = Page.format_page_name(filename)
+        if filename:
+            self.config["title"] = Page.format_page_name(filename)
 
         self.config = Page.merge_configs(self.config, this_config)
 
