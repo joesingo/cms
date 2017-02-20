@@ -24,8 +24,8 @@ available:
 
 * **port** (optional): The port to listen on (defaults to 5000)
 
-* **default_page_config** (optional): This is the default config that is used as a base
-  for every page on the site (see [below](#page-config))
+* **default_page_config** (optional): This is the default config that is used by
+  default for every page on the site (see [below](#page-config))
 
 * **export_to** (optional): The directory to export all pages as HTML files to. If
   this option is specified then `host` and `port` have no effect since a webserver
@@ -72,7 +72,7 @@ separated by a line containing the string `---`.
 
     However, some options are special and are used by cms itself:
 
-    * **template** (required): The template to use to render the page. This should be a
+    * **template**: The template to use to render the page. This should be a
     filename relative to one of the templates directories.
 
     * **base_config:** A file to inherit the config section from. The entire
