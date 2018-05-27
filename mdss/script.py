@@ -3,7 +3,7 @@ import argparse
 import yaml
 
 from mdss.config import SiteConfig
-from mdss.gen_site import SiteGenerator
+from mdss.site_gen import SiteGenerator
 
 
 def main():
