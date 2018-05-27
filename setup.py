@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": [
-            "mdss=mdss.gen_site:main"
+            "mdss=mdss.script:main"
         ]
     }
 )

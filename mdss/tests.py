@@ -1,7 +1,9 @@
 import os
 import pytest
 
-from mdss.gen_site import SiteGenerator, ConfigOption, SiteConfig, Page
+from mdss.gen_site import SiteGenerator
+from mdss.config import SiteConfig, ConfigOption
+from mdss.page import Page
 from mdss.exceptions import InvalidPageError
 
 
