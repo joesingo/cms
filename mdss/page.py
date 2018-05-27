@@ -1,4 +1,5 @@
 import yaml
+import markdown
 
 from mdss.exceptions import InvalidPageError
 
@@ -28,6 +29,10 @@ class Page(object):
         self.children.append(new_page)
 
     @classmethod
+    def content_to_html(cls, md_str):
+        return markdown.markdown(md_str)
+
+    @classmethod
     def parse_context(cls, context_str):
         """
         Parse the context section and return a dict
@@ -47,7 +52,7 @@ class Page(object):
             return {}, ""
 
         context_str = ""
-        content = ""
+        md_content = ""
         context_section = True
 
         with open(self.src_path) as f:
@@ -58,7 +63,7 @@ class Page(object):
                 if context_section:
                     context_str += line
                 else:
-                    content += line
+                    md_content += line
         context = self.parse_context(context_str)
+        content = self.content_to_html(md_content)
         return context, content
-

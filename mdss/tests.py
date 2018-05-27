@@ -1,23 +1,13 @@
+import time
 import os
+
+import yaml
 import pytest
 
 from mdss.site_gen import SiteGenerator
 from mdss.config import SiteConfig, ConfigOption
 from mdss.page import Page
 from mdss.exceptions import InvalidPageError
-
-
-class NoFilePage(Page):
-    """
-    Override Page class to test pages more easily by passing context and page
-    contents directly rather than parsing from a file
-    """
-    def set_content(self, context, content):
-        self.context = context
-        self.content = content
-
-    def read_page_source(self):
-        return self.context, self.config
 
 
 class TestSiteGeneration(object):
@@ -86,6 +76,19 @@ class TestSiteGeneration(object):
                                                    "file.html"]
         assert t("relativ/dir/") == ["relativ", "dir"]
 
+class TestPageRendering(object):
+    def create_test_page(self, tmpdir, name="test", contents_str=None,
+                         context={}, content=None):
+        tmp_file = tmpdir.join("test_page_{}.md".format(time.time()))
+
+        if not contents_str:
+            contents_str = yaml.dump(context)
+            contents_str += os.linesep + Page.SECTION_SEPARATOR + os.linesep
+            contents_str += content
+
+        tmp_file.write(contents_str)
+        return Page(name, [], str(tmp_file))
+
     def test_page_rendering(self, tmpdir):
         """
         End to end test of page rendering
@@ -99,7 +102,7 @@ class TestSiteGeneration(object):
         templates.join("my-temp.html").write("\n".join([
             "<h1>{{ title }}</h1>",
             "<p>some cool template: {{ extra_var }}</p>",
-            "<p>{{ content }}</p>"
+            "{{ content }}"
         ]))
 
         content = tmpdir.mkdir("content")
@@ -175,6 +178,18 @@ class TestSiteGeneration(object):
         for page in pages:
             with pytest.raises(InvalidPageError):
                 s_gen.render_page(page)
+
+    def test_markdown_conversion(self, tmpdir):
+        templates = tmpdir.mkdir("templates")
+        templates.join("t.html").write("{{ content }}")
+        config = SiteConfig(default_template="t.html",
+                            templates_path=[str(templates)])
+
+        page = self.create_test_page(tmpdir,
+                                     content="This should be **Markdown**")
+        s_gen = SiteGenerator(content_dir=None, config=config)
+        expected_html = "<p>This should be <strong>Markdown</strong></p>"
+        assert s_gen.render_page(page) == expected_html
 
 
 class TestConfigs(object):
