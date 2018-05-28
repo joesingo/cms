@@ -5,6 +5,7 @@ import yaml
 import pytest
 
 from mdss.site_gen import SiteGenerator
+from mdss.tree import SiteTree
 from mdss.config import SiteConfig, ConfigOption
 from mdss.page import Page
 from mdss.exceptions import InvalidPageError
@@ -67,6 +68,52 @@ class TestSiteGeneration(object):
             "d1/d2/d3/three/index.html"
         ])
 
+    def test_breadcrumbs(self, tmpdir):
+        templates = tmpdir.mkdir("templates")
+        templates.join("b.html").write("{{ breadcrumbs }}")
+
+        # Map src path to either list of breadcrumbs OR a tuple
+        # (breadcrumbs, dest path)
+        home = SiteTree.HOME_PAGE_NAME
+        tests = {
+            # home page
+            "index.md": [home],
+            # single file -- no index.md
+            "books.md": ([home, "books"], "books/index.html"),
+            # explicit index.md
+            "music/index.md": [home, "music"],
+            # deeper nesting
+            "music/guitar.md": ([home, "music", "guitar"],
+                                "music/guitar/index.html"),
+            "music/piano/index.md": [home, "music", "piano"],
+            "music/piano/chopin.md": ([home, "music", "piano", "chopin"],
+                                      "music/piano/chopin/index.html")
+        }
+        content = tmpdir.mkdir("content")
+        for path in tests:
+            dirname = os.path.join(str(content), os.path.dirname(path))
+            if not os.path.isdir(dirname):
+                os.makedirs(dirname)
+            content.join(path).write("template: b.html")
+
+        config = SiteConfig(templates_path=[str(templates)])
+        s_gen = SiteGenerator(str(content), config=config)
+
+        output = tmpdir.mkdir("output")
+        s_gen.gen_site(str(output))
+
+        for src_path, val in tests.items():
+            if isinstance(val, tuple):
+                bc, dest_path = val
+            else:
+                bc = val
+                dest_path = src_path.replace("md", "html")
+
+            with open(os.path.join(str(output), dest_path)) as f:
+                contents = f.read().strip()
+
+            assert contents == repr(bc)
+
     def test_split_path(self):
         def t(p): return SiteGenerator.split_path(p)
         assert t("/one/two/three/four.md") == ["one", "two", "three",
@@ -74,7 +121,8 @@ class TestSiteGeneration(object):
         assert t("/one/two/three/") == ["one", "two", "three"]
         assert t("relative/path/to/file.html") == ["relative", "path", "to",
                                                    "file.html"]
-        assert t("relativ/dir/") == ["relativ", "dir"]
+        assert t("relative/dir/") == ["relative", "dir"]
+
 
 class TestPageRendering(object):
     def create_test_page(self, tmpdir, name="test", contents_str=None,
@@ -166,7 +214,7 @@ class TestPageRendering(object):
         for name, lines in files.items():
             tmp_file = content_tmp.join("{}.md".format(name))
             tmp_file.write("\n".join(lines))
-            pages.append(Page(name, breadcrumbs=[], src_path=str(tmp_file)))
+            pages.append(Page(name, location=[], src_path=str(tmp_file)))
 
         templates = tmpdir.mkdir("templates")
         templates.join("t.html").write("hello")

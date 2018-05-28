@@ -5,20 +5,25 @@ from mdss.exceptions import InvalidPageError
 
 
 class Page(object):
+    """
+    Class representing a page in the website. This may be a page correspoding
+    to a source file, or an index page generated for a directory that contains
+    source files
+    """
 
     # string used to separate context and content
     SECTION_SEPARATOR = "---"
 
-    def __init__(self, name, breadcrumbs, src_path, children=None):
+    def __init__(self, name, location, src_path, children=None):
         """
         name        - page title
-        breadcrumbs - list of names of parent pages, up to but not including
+        location    - list of names of parent pages, up to but not including
                       this one
         src_path    - path on disk to content file
         children    - child pages
         """
         self.name = name
-        self.breadcrumbs = breadcrumbs
+        self.location = location
         self.src_path = src_path
         self.children = children or []
 
@@ -30,6 +35,9 @@ class Page(object):
 
     @classmethod
     def content_to_html(cls, md_str):
+        """
+        Convert page content and return HTML as a string
+        """
         return markdown.markdown(md_str)
 
     @classmethod
