@@ -46,7 +46,7 @@ class Page(object):
         Parse the context section and return a dict
         """
         try:
-            return yaml.load(context_str)
+            return yaml.load(context_str) or {}
         except yaml.scanner.ScannerError:
             raise InvalidPageError("Context was not valid YAML")
 
