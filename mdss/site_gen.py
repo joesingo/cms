@@ -45,15 +45,11 @@ class SiteGenerator(object):
             # remove trailing 'index'
             if parts[-1] == "index":
                 parts.pop(-1)
-            name = parts[-1]
 
-            location = parts[:-1]
-            location.insert(0, SiteTree.HOME_PAGE_NAME)
-            page = Page(name, location, page_path)
+            page_id = parts[-1]
+            page = Page(page_id, src_path=page_path)
 
-            # insert location is relative to home page, so remove first
-            # component
-            self.tree.insert(page, location[1:])
+            self.tree.insert(page, location=parts[:-1])
 
     def gen_site(self, export_dir):
         """
@@ -70,9 +66,9 @@ class SiteGenerator(object):
         """
         Construct the path to write a page to in the export dir
         """
-        prefix = page.location[1:]
-        if page.name != SiteTree.HOME_PAGE_NAME:
-            prefix.append(page.name)
+        prefix = [p.id for p in page.breadcrumbs()[1:-1]]
+        if page.parent is not None:
+            prefix.append(page.id)
         return os.path.join(*prefix, "index.html")
 
     def render_page(self, page):
@@ -88,9 +84,9 @@ class SiteGenerator(object):
             context["template"] = self.config.default_template
 
         if "title" not in context:
-            context["title"] = page.name
+            context["title"] = page.title
 
-        context["breadcrumbs"] = page.location + [page.name]
+        context["breadcrumbs"] = page.breadcrumbs()
 
         template = self.env.get_template(context.pop("template"))
         return template.render(**context)
@@ -101,7 +97,6 @@ class SiteGenerator(object):
         """
         for page in self.tree:
             dest_path = os.path.join(export_dir, self.get_dest_path(page))
-
             # make sure containing directory exists
             par_dir = os.path.dirname(dest_path)
             if not os.path.isdir(par_dir):

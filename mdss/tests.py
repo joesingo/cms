@@ -7,7 +7,7 @@ import pytest
 from mdss.site_gen import SiteGenerator
 from mdss.tree import SiteTree
 from mdss.config import SiteConfig, ConfigOption
-from mdss.page import Page
+from mdss.page import Page, PageInfo
 from mdss.exceptions import InvalidPageError
 
 
@@ -74,7 +74,7 @@ class TestSiteGeneration(object):
 
         # Map src path to either list of breadcrumbs OR a tuple
         # (breadcrumbs, dest path)
-        home = SiteTree.HOME_PAGE_NAME
+        home = SiteTree.HOME_PAGE_TITLE
         tests = {
             # home page
             "index.md": [home],
@@ -104,14 +104,16 @@ class TestSiteGeneration(object):
 
         for src_path, val in tests.items():
             if isinstance(val, tuple):
-                bc, dest_path = val
+                bc_ids, dest_path = val
             else:
-                bc = val
+                bc_ids = val
                 dest_path = src_path.replace("md", "html")
 
             with open(os.path.join(str(output), dest_path)) as f:
                 contents = f.read().strip()
 
+            bc = [PageInfo(id=p_id, title=Page.get_default_title(p_id))
+                  for p_id in bc_ids]
             assert contents == repr(bc)
 
     def test_split_path(self):
@@ -125,7 +127,7 @@ class TestSiteGeneration(object):
 
 
 class TestPageRendering(object):
-    def create_test_page(self, tmpdir, name="test", contents_str=None,
+    def create_test_page(self, tmpdir, page_id="test", contents_str=None,
                          context={}, content=None):
         tmp_file = tmpdir.join("test_page_{}.md".format(time.time()))
 
@@ -135,7 +137,7 @@ class TestPageRendering(object):
             contents_str += content
 
         tmp_file.write(contents_str)
-        return Page(name, [], str(tmp_file))
+        return Page(page_id, src_path=str(tmp_file))
 
     def test_page_rendering(self, tmpdir):
         """
@@ -184,7 +186,7 @@ class TestPageRendering(object):
             easter_blog_str = f.read().strip()
 
         assert blog_index_str == "\n".join([
-            "<h1>blog</h1>",
+            "<h1>Blog</h1>",  # title should have been capitalised
             "<p>this is the default</p>"
         ])
 
@@ -214,7 +216,7 @@ class TestPageRendering(object):
         for name, lines in files.items():
             tmp_file = content_tmp.join("{}.md".format(name))
             tmp_file.write("\n".join(lines))
-            pages.append(Page(name, location=[], src_path=str(tmp_file)))
+            pages.append(Page(name, src_path=str(tmp_file)))
 
         templates = tmpdir.mkdir("templates")
         templates.join("t.html").write("hello")
@@ -238,6 +240,58 @@ class TestPageRendering(object):
         s_gen = SiteGenerator(content_dir=None, config=config)
         expected_html = "<p>This should be <strong>Markdown</strong></p>"
         assert s_gen.render_page(page) == expected_html
+
+    def test_title_handling(self, tmpdir):
+        """
+        Check that a title is generated based on filename if title not
+        specified in page context.
+
+        Check that if a title is specified it is used in breadcrumbs
+        """
+        templates = tmpdir.mkdir("templates")
+        templates.join("t.html").write("{{ title }}")
+        templates.join("b.html").write(
+            "{{ breadcrumbs|map(attribute='title')|join(', ') }}"
+        )
+        config = SiteConfig(default_template="t.html",
+                            templates_path=[str(templates)])
+
+        content = tmpdir.mkdir("content")
+        with_title = content.mkdir("with-title")
+        with_title.join("index.md").write("\n".join([
+            "template: t.html",
+            "title: custom title",
+            "---"
+        ]))
+        with_title.join("child.md").write("\n".join([
+            "template: b.html",
+            "title: woohoo",
+            "---"
+        ]))
+        content.join("without-a-title.md").write("\n".join([
+            "template: t.html",
+            "---"
+        ]))
+
+        s_gen = SiteGenerator(str(content), config)
+        output = tmpdir.mkdir("output")
+        s_gen.gen_site(str(output))
+
+        with_title_output = output.join("with-title", "index.html")
+        without_title_output = output.join("without-a-title", "index.html")
+        child_output = output.join("with-title", "child", "index.html")
+        # check the output files exist in the correct place
+        assert with_title_output.check()
+        assert without_title_output.check()
+        assert child_output.check()
+
+        assert with_title_output.read() == "custom title"
+        assert without_title_output.read() == "Without a title"
+
+        # Check that custom title is used in breadcrumbs
+        exp_bc = ", ".join([SiteTree.HOME_PAGE_TITLE, "custom title",
+                            "woohoo"])
+        assert child_output.read() == exp_bc
 
 
 class TestConfigs(object):

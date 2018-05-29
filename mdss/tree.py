@@ -5,10 +5,10 @@ class SiteTree(object):
     """
     A tree to store the hierarchy of pages
     """
-    HOME_PAGE_NAME = "Home"
+    HOME_PAGE_TITLE = "Home"
 
     def __init__(self):
-        self.root = Page(name=self.HOME_PAGE_NAME, location=[], src_path=None)
+        self.root = Page(self.HOME_PAGE_TITLE)
 
     def set_root_path(self, path):
         """
@@ -36,28 +36,32 @@ class SiteTree(object):
         # which it should live
         next_insert_at = None
         for child in start.children:
-            if child.name == location[0]:
+            if child.id == location[0]:
                 next_insert_at = child
                 break
 
         # if none found create a new one
         if not next_insert_at:
-            dummy_location = start.location + [start.name]
-            dummy_page = Page(name=location[0], location=dummy_location,
-                              src_path=None)
+            dummy_page = Page(location[0])
             start.add_child(dummy_page)
             next_insert_at = dummy_page
 
         self.insert(new_page, location[1:], insert_at=next_insert_at)
 
-    def iter_node(self, start):
+    def iter_node(self, start, include_start=False):
         """
-        Return a list of nodes underneath and including `start`
+        Perform a level-order traversal starting at node `start`
         """
-        nodes = [start]
+        nodes = []
+
+        if include_start:
+            nodes.append(start)
+
+        for child in start.children:
+            nodes.append(child)
         for child in start.children:
             nodes += self.iter_node(child)
         return nodes
 
     def __iter__(self):
-        return (x for x in self.iter_node(self.root))
+        return (x for x in self.iter_node(self.root, include_start=True))
