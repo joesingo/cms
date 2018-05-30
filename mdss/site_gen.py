@@ -4,6 +4,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from mdss.page import Page
 from mdss.tree import SiteTree
+from mdss.macro import MacroHandler
 
 
 class SiteGenerator(object):
@@ -78,7 +79,13 @@ class SiteGenerator(object):
         context, content = page.read_page_source()
 
         # modify context
-        context.update(content=content)
+
+        if "macros" in context:
+            code_filename = "{}:<macro>".format(page.src_path)
+            macro_handler = MacroHandler(context["macros"], code_filename)
+            content = macro_handler.replace_all(content)
+
+        context.update(content=Page.content_to_html(content))
 
         if "template" not in context:
             context["template"] = self.config.default_template

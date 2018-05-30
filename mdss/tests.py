@@ -330,3 +330,41 @@ class TestConfigs(object):
         got = ShouldNotError({"extra": 5}).items()
         expected = {"extra": 5, "opt": 4}.items()
         assert got == expected
+
+
+class TestMacros(object):
+    def test_macros(self, tmpdir):
+        templates = tmpdir.mkdir("templates")
+        templates.join("c.html").write("{{ content }}")
+
+        content = tmpdir.mkdir("content")
+        content.join("index.md").write("\n".join([
+            "macros: |",
+            "    def simplemacro(s):",
+            "        return s.upper()",
+            "    def withkwargs(s, **kwargs):",
+            "        return repr(kwargs)",
+            "---",
+            "Macros are <?simplemacro>good<?/simplemacro>",
+            "They can span",
+            "<?simplemacro>",
+            "multiple lines",
+            "<?/simplemacro>",
+            "",
+            "<?withkwargs name=joe job='software dev' age=\"21\">blah<?/withkwargs>"
+        ]))
+
+        config = SiteConfig(templates_path=[str(templates)],
+                            default_template="c.html")
+        s_gen = SiteGenerator(str(content), config)
+        output = tmpdir.mkdir("output")
+        s_gen.gen_site(str(output))
+
+        html = output.join("index.html")
+        assert html.check()
+        contents = html.read()
+
+        assert "Macros are GOOD" in contents
+        assert "MULTIPLE LINES" in contents
+        exp_repr = repr({"name": "joe", "job": "software dev", "age": "21"})
+        assert exp_repr in contents

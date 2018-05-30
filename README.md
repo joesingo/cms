@@ -54,6 +54,7 @@ meaning:
 | Variable | Description |
 | -------- | ----------- |
 | template | The template to render the page with. This must be a filename found in one of the `template_path` directories (see [site configuration](#site-configuration)) |
+| macros   | Python functions(s) that can be used as macros in the content section. See [macros](#macros) for examples. |
 
 ### Templates
 
@@ -66,7 +67,7 @@ Some additional variables are set by mdss itself:
 | -------- | ----------- |
 | title    | Title based on the filename of the content file (if not already set) |
 
-## Directory structure
+### Directory structure
 
 Content is structured in a hierarchical manner that can go as many layers deep
 as you want. Consider the following directory structure
@@ -104,3 +105,48 @@ Note that `index.html` pages have been created for `blog`, `2018`, `may`, and
 `june`, even though no `index.md` files were present. This is because these
 directories have pages 'beneath' them. This allows you to have automatic
 index pages that show a list of child pages.
+
+### Macros
+
+To avoid repeating HTML throughout your content, python functions may be used
+as *macros* to substitute text with the return value of the function. For
+example:
+
+    title: Macro example
+    macros: |
+        def math_block(string, title="", type="Definition"):
+            return ("<h2 class='maths-header'>{type}: {title}</h2>"
+                    "<div class='maths-body'>{string}</div>").format(**locals())
+    ---
+
+    <?math_block title="Continuous function">
+        A function f is continous at x if ...
+    <?/math_block>
+
+    <?math_block title="Intermediate value theorem" type="Theorem">
+        For a function f continous on [a, b] ...
+    <?/math_block>
+
+The `content` variable in the template context will then contain
+
+```html
+<h2 class='maths-header'>Definition: Continuous function</h2>
+
+<div class='maths-body'>
+    A function f is continous at x if ...
+</div>
+
+<h2 class='maths-header'>Theorem: Intermediate value theorem</h2>
+
+<div class='maths-body'>
+    For a function f continous on [a, b] ...
+</div>
+```
+
+Multiple functions can be defined in the `macros` section. Each function should
+take a single positional argument (the value between `<?name>` and `<?/name>`
+for a function `name`), and may optionally accept keyword arguments.
+
+Keyword arguments are given as normal HTML attributes -- they may be quoted
+with single or double quotes, or not quoted at all. Note that arguments are
+always passed as *strings*.

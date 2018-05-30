@@ -95,8 +95,8 @@ class Page(object):
     def read_page_source(self):
         """
         Read the page context and contents from the file and return
-        (context, content), where `context` is a dictionary and `content` is a
-        string
+        (context, content), where `context` is a dictionary and `content` is
+        the raw markdown content string
         """
         if not self.src_path:
             return {}, ""
@@ -115,5 +115,4 @@ class Page(object):
                 else:
                     md_content += line
         context = self.parse_context(context_str)
-        content = self.content_to_html(md_content)
-        return context, content
+        return context, md_content
