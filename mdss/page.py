@@ -19,15 +19,14 @@ class Page(object):
     # string used to separate context and content
     SECTION_SEPARATOR = "---"
 
-    def __init__(self, p_id, src_path=None, children=None):
+    def __init__(self, p_id, src_path=None):
         """
         p_id        - page ID
         src_path    - path on disk to content file (optional)
-        children    - child pages (optional)
         """
         self.id = p_id
         self.src_path = src_path
-        self.children = children or []
+        self.children = {}
         self.parent = None
 
         # title may be overriden later in page context -- set default for now
@@ -57,8 +56,20 @@ class Page(object):
         """
         Insert a page beneath this one
         """
+        # if page already exists (e.g. dummy page was created before
+        # content file seen), transfer its children to its replacement
+        if new_page.id in self.children:
+            for grandchild in self.children[new_page.id].iterchildren():
+                new_page.add_child(grandchild)
+
         new_page.parent = self
-        self.children.append(new_page)
+        self.children[new_page.id] = new_page
+
+    def iterchildren(self):
+        """
+        Return an iterator over this page's children
+        """
+        return self.children.values()
 
     @classmethod
     def content_to_html(cls, md_str):

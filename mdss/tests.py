@@ -12,13 +12,12 @@ from mdss.exceptions import InvalidPageError
 
 
 class TestSiteGeneration(object):
-    @pytest.fixture
-    def default_config(self):
-        return SiteConfig()
 
-    def test_site_gen(self, tmpdir, default_config):
+    def test_site_gen(self, tmpdir):
         files = []
         content = tmpdir.mkdir("content")
+        templates = tmpdir.mkdir("templates")
+        templates.join("t.html").write("hello")
 
         # single file
         files.append(content.join("food.md"))
@@ -43,9 +42,11 @@ class TestSiteGeneration(object):
         files.append(d3.join("three.md"))
 
         for f in files:
-            f.write("template: base.html\n---\n")
+            f.write("---\n")
 
-        s = SiteGenerator(str(content), default_config)
+        config = SiteConfig(templates_path=[str(templates)],
+                            default_template="t.html")
+        s = SiteGenerator(str(content), config)
         output = tmpdir.mkdir("output")
         s.gen_site(str(output))
         all_files = []

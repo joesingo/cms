@@ -35,7 +35,7 @@ class SiteTree(object):
         # if page is at a lower level in the hierarchy, find the child under
         # which it should live
         next_insert_at = None
-        for child in start.children:
+        for child in start.iterchildren():
             if child.id == location[0]:
                 next_insert_at = child
                 break
@@ -48,20 +48,13 @@ class SiteTree(object):
 
         self.insert(new_page, location[1:], insert_at=next_insert_at)
 
-    def iter_node(self, start, include_start=False):
+    def iter_node(self, start):
         """
-        Perform a level-order traversal starting at node `start`
+        Perform a pre-order traversal starting at node `start`
         """
-        nodes = []
-
-        if include_start:
-            nodes.append(start)
-
-        for child in start.children:
-            nodes.append(child)
-        for child in start.children:
-            nodes += self.iter_node(child)
-        return nodes
+        yield start
+        for child in start.iterchildren():
+            yield from self.iter_node(child)
 
     def __iter__(self):
-        return (x for x in self.iter_node(self.root, include_start=True))
+        return self.iter_node(self.root)
