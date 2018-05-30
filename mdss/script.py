@@ -1,3 +1,4 @@
+import os
 import sys
 import argparse
 import yaml
@@ -16,9 +17,16 @@ def main():
         "export_dir",
         help="The directory to export HTML files to"
     )
+    parser.add_argument(
+        "-f", "--config-file",
+        dest="config_file",
+        help="Path to site-wide config file"
+    )
+
     args = parser.parse_args(sys.argv[1:])
 
-    with open("mdss_config.yml") as f:
+    config_path = args.config_file or SiteConfig.find_site_config()
+    with open(config_path) as f:
         config_dict = yaml.load(f)
     config = SiteConfig(config_dict)
     SiteGenerator(args.content_dir, config).gen_site(args.export_dir)

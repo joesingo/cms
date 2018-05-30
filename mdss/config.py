@@ -1,3 +1,4 @@
+import os.path
 from collections import namedtuple
 
 
@@ -13,6 +14,9 @@ class SiteConfig(dict):
         ConfigOption("default_template", "base.html"),
     ]
     error_if_extra = True
+
+    # filename to look for when searching for site config
+    config_filename = "mdss_config.yml"
 
     def __init__(self, d=None, **kwargs):
         """
@@ -43,3 +47,18 @@ class SiteConfig(dict):
 
     def __getattr__(self, x):
         return self[x]
+
+    @classmethod
+    def find_site_config(cls, directory=None):
+        directory = os.path.normpath(directory or os.getcwd())
+        path = os.path.join(directory, cls.config_filename)
+
+        if os.path.isfile(path):
+            return path
+
+        parent_dir = os.path.normpath(os.path.join(directory, os.path.pardir))
+        if parent_dir != directory:
+            return cls.find_site_config(parent_dir)
+        else:
+            err_msg = "Cannot find '{}' file".format(cls.config_filename)
+            raise ValueError(err_msg)

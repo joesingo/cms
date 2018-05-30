@@ -150,3 +150,18 @@ for a function `name`), and may optionally accept keyword arguments.
 Keyword arguments are given as normal HTML attributes -- they may be quoted
 with single or double quotes, or not quoted at all. Note that arguments are
 always passed as *strings*.
+
+## Site configuration
+
+Site-wide configuration options can be set in `mdss_config.yml` at the root
+level of the directory containing content. The `mdss` command finds this file
+by traversing up the filesystem starting in the current directory (similar to
+how Git finds the `.git` directory). To use another name, give the path to the
+config explicitly with the `-f` option.
+
+The available config options are:
+
+| Variable | Description |
+| -------- | ----------- |
+| templates_path | List of directories to search for templates in (default: `["templates"]`) |
+| default_template | Name of the template to use when one is not specified. This is required for pages generated automatically because they have child pages (default: `base.html`) |
