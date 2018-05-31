@@ -3,11 +3,12 @@ import os
 
 import yaml
 import pytest
+from py.path import local
 
 from mdss.site_gen import SiteGenerator
 from mdss.tree import SiteTree
 from mdss.config import SiteConfig, ConfigOption
-from mdss.page import Page, PageInfo, cachedproperty
+from mdss.page import Page, HomePage, PageInfo, cachedproperty
 from mdss.exceptions import InvalidPageError
 
 
@@ -71,10 +72,14 @@ class TestSiteGeneration(object):
 
     def test_breadcrumbs(self, tmpdir):
         templates = tmpdir.mkdir("templates")
-        templates.join("b.html").write("{{ breadcrumbs }}")
+        templates.join("b.html").write("\n".join([
+            "{% for b in breadcrumbs %}",
+                "{{ b.path }}, {{ b.title }}",
+            "{% endfor %}"
+        ]))
 
         tests = []
-        home_bc = [("/", SiteTree.HOME_PAGE_TITLE)]
+        home_bc = [("/", HomePage.title)]
         tests.append(("index.md", home_bc))
 
         books_bc = home_bc + [("/books/", "Books")]
@@ -97,9 +102,10 @@ class TestSiteGeneration(object):
             dirname = os.path.join(str(content), os.path.dirname(path))
             if not os.path.isdir(dirname):
                 os.makedirs(dirname)
-            content.join(path).write("template: b.html")
+            content.join(path).write("---")
 
-        config = SiteConfig(templates_path=[str(templates)])
+        config = SiteConfig(templates_path=[str(templates)],
+                            default_template="b.html")
         s_gen = SiteGenerator(str(content), config=config)
 
         output = tmpdir.mkdir("output")
@@ -113,8 +119,8 @@ class TestSiteGeneration(object):
             with open(os.path.join(str(output), dest_path)) as f:
                 contents = f.read().strip()
 
-            bc = [PageInfo(*t) for t in expected_breadcrumbs]
-            assert contents == repr(bc)
+            lines = filter(None, contents.strip().split("\n"))
+            assert list(lines) == [p + ", " + t for p, t in expected_breadcrumbs]
 
     def test_split_path(self):
         def t(p): return SiteGenerator.split_path(p)
@@ -127,6 +133,20 @@ class TestSiteGeneration(object):
 
 
 class TestPageRendering(object):
+
+    @pytest.fixture
+    def site_setup(self, tmpdir):
+        templates = tmpdir.mkdir("templates")
+        templates.join("def.html").write("{{ content }}")
+
+        content = tmpdir.mkdir("content")
+        output = tmpdir.mkdir("output")
+        config = SiteConfig(templates_path=[str(templates)],
+                            default_template="def.html")
+        s_gen = SiteGenerator(str(content), config)
+        return templates, content, output, s_gen
+
+
     def create_test_page(self, tmpdir, page_id="test", contents_str=None,
                          context={}, content=None):
         tmp_file = tmpdir.join("test_page_{}.md".format(time.time()))
@@ -216,18 +236,8 @@ class TestPageRendering(object):
         for name, lines in files.items():
             tmp_file = content_tmp.join("{}.md".format(name))
             tmp_file.write("\n".join(lines))
-            pages.append(Page(name, src_path=str(tmp_file)))
-
-        templates = tmpdir.mkdir("templates")
-        templates.join("t.html").write("hello")
-        config = SiteConfig(default_template="t.html",
-                            templates_path=[str(templates)])
-
-        s_gen = SiteGenerator(content_dir=None, config=config)
-
-        for page in pages:
             with pytest.raises(InvalidPageError):
-                s_gen.render_page(page)
+                Page(name, src_path=str(tmp_file))
 
     def test_markdown_conversion(self, tmpdir):
         templates = tmpdir.mkdir("templates")
@@ -289,9 +299,93 @@ class TestPageRendering(object):
         assert without_title_output.read() == "Without a title"
 
         # Check that custom title is used in breadcrumbs
-        exp_bc = ", ".join([SiteTree.HOME_PAGE_TITLE, "custom title",
+        exp_bc = ", ".join([HomePage.title, "custom title",
                             "woohoo"])
         assert child_output.read() == exp_bc
+
+    def test_read_context_only(self, tmpdir):
+        p = tmpdir.join("mypage.md")
+        p.write("\n".join([
+            "title: something",
+            "---",
+            "content goes here"
+        ]))
+        page = Page("mypage", str(p))
+        context, content = page.read_page_source(context_only=True)
+        assert context == {"title": "something"}
+        assert content == ""
+
+    def test_child_listing(self, site_setup):
+        templates, content, output, s_gen = site_setup
+        templates.join("c.html").write("\n".join([
+            "<ul>",
+            "{% for c in children recursive %}",
+                "<li>{{ c.path}}, {{ c.title }}</li>",
+                "{% if c.children %}",
+                    "<ul>",
+                    "{{ loop(c.children) }}",
+                    "</ul>",
+                "{% endif %}",
+            "{% endfor %}"
+            "</ul>",
+        ]))
+
+        files = [
+            "a/b/c/page1/index.md",
+            "a/b/page2.md",
+            "a2/b2/page3.md"
+        ]
+
+        for i, f in enumerate(files):
+            p = content.join(f)
+            if not local(p.dirname).check():
+                os.makedirs(p.dirname)
+            s = "title: The first page" if i == 0 else ""
+            p.write("---\n" + s)
+
+        s_gen.config["default_template"] = "c.html"
+        s_gen.gen_site(str(output))
+
+        remove_empties = lambda l: list(filter(None, map(str.strip, l)))
+
+        # root should be all pages
+        root = output.join("index.html")
+        assert root.check()
+        assert remove_empties(root.readlines()) == [
+            "<ul>",
+                "<li>/a/, A</li>",
+                "<ul>",
+                    "<li>/a/b/, B</li>",
+                    "<ul>",
+                        "<li>/a/b/c/, C</li>",
+                        "<ul>",
+                            "<li>/a/b/c/page1/, Page1</li>",
+                        "</ul>",
+                        "<li>/a/b/page2/, Page2</li>",
+                    "</ul>",
+                "</ul>",
+                "<li>/a2/, A2</li>",
+                "<ul>",
+                    "<li>/a2/b2/, B2</li>",
+                    "<ul>",
+                        "<li>/a2/b2/page3/, Page3</li>",
+                    "</ul>",
+                "</ul>",
+            "</ul>"
+        ]
+
+        # inner pages should work too
+        inner = output.join("a/b/index.html")
+        assert inner.check()
+        assert remove_empties(inner.readlines()) == [
+            "<ul>",
+                "<li>/a/b/c/, C</li>",
+                "<ul>",
+                    "<li>/a/b/c/page1/, Page1</li>",
+                "</ul>",
+                "<li>/a/b/page2/, Page2</li>",
+            "</ul>",
+        ]
 
 
 class TestConfigs(object):

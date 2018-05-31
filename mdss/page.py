@@ -1,4 +1,4 @@
-from collections import namedtuple
+from operator import attrgetter
 
 import yaml
 import markdown
@@ -19,7 +19,14 @@ def cachedproperty(func):
     return property(inner)
 
 
-PageInfo = namedtuple("PageInfo", ["path", "title"])
+class PageInfo:
+    """
+    Simplified object representing a page for use in templates
+    """
+    def __init__(self, path, title, children=None):
+        self.path = path
+        self.title = title
+        self.children = children or []
 
 
 class Page(object):
@@ -39,14 +46,18 @@ class Page(object):
         """
         self.id = p_id
         self.src_path = src_path
-        # URL path for exported page - will be set when breadcrumbs are
-        # calculated
+        # relative URL path for exported page - will be set by parent in
+        # add_child()
         self.dest_path = None
+
         self.children = {}
         self.parent = None
 
-        # title may be overriden later in page context -- set default for now
         self.title = self.get_default_title(self.id)
+        if self.src_path:
+            context, _ = self.read_page_source(context_only=True)
+            if "title" in context:
+                self.title = context["title"]
 
     @cachedproperty
     def breadcrumbs(self):
@@ -57,14 +68,10 @@ class Page(object):
         Return a list of PageInfo objects starting at home and ending with this
         page
         """
+        p_info = PageInfo(self.dest_path, self.title)
         if self.parent is None:
-            self.dest_path = "/"
-            return [PageInfo(self.dest_path, self.title)]
-
-        # make sure parent breadcrumbs are cached before accessing dest_path
-        parent_bc = self.parent.breadcrumbs
-        self.dest_path = self.parent.dest_path + self.id + "/"
-        return parent_bc + [PageInfo(self.dest_path, self.title)]
+            return [p_info]
+        return self.parent.breadcrumbs + [p_info]
 
     @classmethod
     def get_default_title(cls, p_id):
@@ -77,20 +84,33 @@ class Page(object):
         """
         Insert a page beneath this one
         """
-        # if page already exists (e.g. dummy page was created before
-        # content file seen), transfer its children to its replacement
+        new_page.parent = self
+        new_page.dest_path = self.dest_path + new_page.id + "/"
+
+        # if page already exists (e.g. dummy page was created before content
+        # file seen), transfer its children to its replacement
         if new_page.id in self.children:
             for grandchild in self.children[new_page.id].iterchildren():
                 new_page.add_child(grandchild)
 
-        new_page.parent = self
         self.children[new_page.id] = new_page
 
     def iterchildren(self):
         """
-        Return an iterator over this page's children
+        Return an iterator over this page's children sorted by title
         """
-        return self.children.values()
+        return sorted(self.children.values(), key=attrgetter("title"))
+
+    def child_listing(self):
+        """
+        Return a list of this page's children as PageInfo objects and descend
+        recursively
+        """
+        listing = []
+        for child in self.iterchildren():
+            listing.append(PageInfo(child.dest_path, child.title,
+                                    child.child_listing()))
+        return listing
 
     @classmethod
     def content_to_html(cls, md_str):
@@ -99,7 +119,8 @@ class Page(object):
         """
         return markdown.markdown(md_str)
 
-    def parse_context(self, context_str):
+    @classmethod
+    def parse_context(cls, context_str):
         """
         Parse the context section and return a dict
         """
@@ -108,32 +129,45 @@ class Page(object):
         except yaml.scanner.ScannerError:
             raise InvalidPageError("Context was not valid YAML")
 
-        if "title" in context:
-            self.title = context["title"]
-
         return context
 
-    def read_page_source(self):
+    def read_page_source(self, context_only=False):
         """
         Read the page context and contents from the file and return
         (context, content), where `context` is a dictionary and `content` is
-        the raw markdown content string
+        the raw markdown content string.
+
+        If `context_only` is True then the content part is not read and
+        `content` is the empty string.
         """
         if not self.src_path:
             return {}, ""
 
         context_str = ""
-        md_content = ""
+        content = ""
         context_section = True
 
         with open(self.src_path) as f:
             for line in f.readlines():
                 if line.strip() == self.SECTION_SEPARATOR:
+                    if context_only:
+                        break
                     context_section = False
                     continue
                 if context_section:
                     context_str += line
                 else:
-                    md_content += line
+                    content += line
         context = self.parse_context(context_str)
-        return context, md_content
+        return context, content
+
+
+class HomePage(Page):
+    """
+    Root level page
+    """
+    title = "Home"
+
+    def __init__(self, src_path=None):
+        super().__init__(HomePage.title, src_path=src_path)
+        self.dest_path = "/"

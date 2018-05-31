@@ -1,14 +1,13 @@
-from mdss.page import Page
+from mdss.page import Page, HomePage
 
 
 class SiteTree(object):
     """
     A tree to store the hierarchy of pages
     """
-    HOME_PAGE_TITLE = "Home"
 
     def __init__(self):
-        self.root = Page(self.HOME_PAGE_TITLE)
+        self.root = HomePage()
 
     def set_root_path(self, path):
         """

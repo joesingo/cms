@@ -62,16 +62,6 @@ class SiteGenerator(object):
                     self.add_page(os.path.join(dirpath, fname))
         self.render_all(export_dir)
 
-    @classmethod
-    def get_dest_path(cls, page):
-        """
-        Construct the path to write a page to in the export dir
-        """
-        prefix = [p.id for p in page.breadcrumbs[1:-1]]
-        if page.parent is not None:
-            prefix.append(page.id)
-        return os.path.join(*prefix, "index.html")
-
     def render_page(self, page):
         """
         Return a page HTML as a string
@@ -94,6 +84,7 @@ class SiteGenerator(object):
             context["title"] = page.title
 
         context["breadcrumbs"] = page.breadcrumbs
+        context["children"] = page.child_listing()
 
         template = self.env.get_template(context.pop("template"))
         return template.render(**context)
