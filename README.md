@@ -1,3 +1,4 @@
+---
 # markdown static site generator
 
 **m**arkdown **s**tatic **s**ite generator is a simple program that generates
@@ -63,9 +64,10 @@ context section of the content pages.
 
 Some additional variables are set by mdss itself:
 
-| Variable | Description |
-| -------- | ----------- |
-| title    | Title based on the filename of the content file (if not already set) |
+| Variable    | Description |
+| ----------- | ----------- |
+| title       | Title based on the filename of the content file (if not already set) |
+| breadcrumbs | [Breadcrumbs](http://ui-patterns.com/patterns/Breadcrumbs) as a list of pages starting with the home page and ending with current page. Each page has properties `path` (relative URL to page) and `title` |
 
 ### Directory structure
 

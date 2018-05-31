@@ -67,7 +67,7 @@ class SiteGenerator(object):
         """
         Construct the path to write a page to in the export dir
         """
-        prefix = [p.id for p in page.breadcrumbs()[1:-1]]
+        prefix = [p.id for p in page.breadcrumbs[1:-1]]
         if page.parent is not None:
             prefix.append(page.id)
         return os.path.join(*prefix, "index.html")
@@ -93,7 +93,7 @@ class SiteGenerator(object):
         if "title" not in context:
             context["title"] = page.title
 
-        context["breadcrumbs"] = page.breadcrumbs()
+        context["breadcrumbs"] = page.breadcrumbs
 
         template = self.env.get_template(context.pop("template"))
         return template.render(**context)
@@ -103,11 +103,14 @@ class SiteGenerator(object):
         Render each page in the tree and write it to a file
         """
         for page in self.tree:
-            dest_path = os.path.join(export_dir, self.get_dest_path(page))
+            html = self.render_page(page)
+            # remove leading / from path
+            dest_path = os.path.join(export_dir, page.dest_path[1:],
+                                     "index.html")
+
             # make sure containing directory exists
             par_dir = os.path.dirname(dest_path)
             if not os.path.isdir(par_dir):
                 os.makedirs(par_dir)
-
             with open(dest_path, "w") as f:
-                f.write(self.render_page(page))
+                f.write(html)

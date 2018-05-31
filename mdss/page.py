@@ -6,7 +6,20 @@ import markdown
 from mdss.exceptions import InvalidPageError
 
 
-PageInfo = namedtuple("PageInfo", ["id", "title"])
+def cachedproperty(func):
+    """
+    Decorator to cache the value of a property so it is only calculated the
+    first time it is accessed
+    """
+    def inner(self):
+        attr = "_" + func.__name__
+        if not hasattr(self, attr):
+            setattr(self, attr, func(self))
+        return getattr(self, attr)
+    return property(inner)
+
+
+PageInfo = namedtuple("PageInfo", ["path", "title"])
 
 
 class Page(object):
@@ -26,24 +39,32 @@ class Page(object):
         """
         self.id = p_id
         self.src_path = src_path
+        # URL path for exported page - will be set when breadcrumbs are
+        # calculated
+        self.dest_path = None
         self.children = {}
         self.parent = None
 
         # title may be overriden later in page context -- set default for now
         self.title = self.get_default_title(self.id)
 
+    @cachedproperty
     def breadcrumbs(self):
         """
         Return a path from the home page to this page through this page's
         parents.
 
-        Return a list of PageInfo objects:
-          [<home info>, <parent info>, ... , <this info>]
+        Return a list of PageInfo objects starting at home and ending with this
+        page
         """
-        p_info = PageInfo(self.id, self.title)
         if self.parent is None:
-            return [p_info]
-        return self.parent.breadcrumbs() + [p_info]
+            self.dest_path = "/"
+            return [PageInfo(self.dest_path, self.title)]
+
+        # make sure parent breadcrumbs are cached before accessing dest_path
+        parent_bc = self.parent.breadcrumbs
+        self.dest_path = self.parent.dest_path + self.id + "/"
+        return parent_bc + [PageInfo(self.dest_path, self.title)]
 
     @classmethod
     def get_default_title(cls, p_id):

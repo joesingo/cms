@@ -7,7 +7,7 @@ import pytest
 from mdss.site_gen import SiteGenerator
 from mdss.tree import SiteTree
 from mdss.config import SiteConfig, ConfigOption
-from mdss.page import Page, PageInfo
+from mdss.page import Page, PageInfo, cachedproperty
 from mdss.exceptions import InvalidPageError
 
 
@@ -73,25 +73,27 @@ class TestSiteGeneration(object):
         templates = tmpdir.mkdir("templates")
         templates.join("b.html").write("{{ breadcrumbs }}")
 
-        # Map src path to either list of breadcrumbs OR a tuple
-        # (breadcrumbs, dest path)
-        home = SiteTree.HOME_PAGE_TITLE
-        tests = {
-            # home page
-            "index.md": [home],
-            # single file -- no index.md
-            "books.md": ([home, "books"], "books/index.html"),
-            # explicit index.md
-            "music/index.md": [home, "music"],
-            # deeper nesting
-            "music/guitar.md": ([home, "music", "guitar"],
-                                "music/guitar/index.html"),
-            "music/piano/index.md": [home, "music", "piano"],
-            "music/piano/chopin.md": ([home, "music", "piano", "chopin"],
-                                      "music/piano/chopin/index.html")
-        }
+        tests = []
+        home_bc = [("/", SiteTree.HOME_PAGE_TITLE)]
+        tests.append(("index.md", home_bc))
+
+        books_bc = home_bc + [("/books/", "Books")]
+        tests.append(("books.md", books_bc))
+
+        music_bc = home_bc + [("/music/", "Music")]
+        tests.append(("music.md", music_bc))
+
+        guitar_bc = music_bc + [("/music/guitar/", "Guitar")]
+        tests.append(("music/guitar.md", guitar_bc))
+
+        piano_bc = music_bc + [("/music/piano/", "Piano")]
+        tests.append(("music/piano/index.md", piano_bc))
+
+        chopin_bc = piano_bc + [("/music/piano/chopin/", "Chopin")]
+        tests.append(("music/piano/chopin.md", chopin_bc))
+
         content = tmpdir.mkdir("content")
-        for path in tests:
+        for path, _ in tests:
             dirname = os.path.join(str(content), os.path.dirname(path))
             if not os.path.isdir(dirname):
                 os.makedirs(dirname)
@@ -103,18 +105,15 @@ class TestSiteGeneration(object):
         output = tmpdir.mkdir("output")
         s_gen.gen_site(str(output))
 
-        for src_path, val in tests.items():
-            if isinstance(val, tuple):
-                bc_ids, dest_path = val
-            else:
-                bc_ids = val
-                dest_path = src_path.replace("md", "html")
+        for src_path, expected_breadcrumbs in tests:
+            dest_path = src_path.replace("md", "html")
+            if not dest_path.endswith("index.html"):
+                dest_path = os.path.join(dest_path[:-5], "index.html")
 
             with open(os.path.join(str(output), dest_path)) as f:
                 contents = f.read().strip()
 
-            bc = [PageInfo(id=p_id, title=Page.get_default_title(p_id))
-                  for p_id in bc_ids]
+            bc = [PageInfo(*t) for t in expected_breadcrumbs]
             assert contents == repr(bc)
 
     def test_split_path(self):
@@ -368,3 +367,20 @@ class TestMacros(object):
         assert "MULTIPLE LINES" in contents
         exp_repr = repr({"name": "joe", "job": "software dev", "age": "21"})
         assert exp_repr in contents
+
+
+class TestCachedPropertyDecorator(object):
+    def test_cached_prop_decorator(self):
+        class MyClass:
+            def __init__(self):
+                self.x = 0
+
+            @cachedproperty
+            def myprop(self):
+                self.x += 10
+                return self.x
+
+        obj = MyClass()
+        assert obj.myprop == 10
+        assert obj.myprop == 10
+        assert obj.myprop == 10
