@@ -424,6 +424,19 @@ class TestConfigs(object):
         expected = {"extra": 5, "opt": 4}.items()
         assert got == expected
 
+    def test_searching(self, tmpdir):
+        one = tmpdir.mkdir("one")
+        two = one.mkdir("two")
+        three = two.mkdir("three")
+        cfg = two.join(SiteConfig.config_filename)
+        cfg.write("")
+
+        assert SiteConfig.find_site_config(str(two)) == str(cfg)
+        assert SiteConfig.find_site_config(str(three)) == str(cfg)
+        with pytest.raises(ValueError):
+            SiteConfig.find_site_config(str(one))
+
+
 
 class TestMacros(object):
     def test_macros(self, tmpdir):
@@ -461,6 +474,26 @@ class TestMacros(object):
         assert "MULTIPLE LINES" in contents
         exp_repr = repr({"name": "joe", "job": "software dev", "age": "21"})
         assert exp_repr in contents
+
+    def test_invalid_name(self, tmpdir):
+        templates = tmpdir.mkdir("templates")
+        templates.join("c.html").write("{{ content }}")
+
+        content = tmpdir.mkdir("content")
+        content.join("index.md").write("\n".join([
+            "macros: |",
+            "   def misnamed_macro(s):",
+            "       return s",
+            "---",
+            "<?mymacro>hello<?/mymacro>"
+        ]))
+
+        config = SiteConfig(templates_path=[str(templates)],
+                            default_template="c.html")
+        s_gen = SiteGenerator(str(content), config)
+        output = tmpdir.mkdir("output")
+        with pytest.raises(KeyError):
+            s_gen.gen_site(str(output))
 
 
 class TestCachedPropertyDecorator(object):

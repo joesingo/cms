@@ -24,7 +24,6 @@ class SiteGenerator(object):
         """
         Split a path by list into its components
         """
-        path = os.path.normpath(path)
         head, tail = os.path.split(path)
         if head in ("", os.path.sep):
             return [tail]
