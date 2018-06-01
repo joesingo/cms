@@ -164,7 +164,8 @@ config explicitly with the `-f` option.
 
 The available config options are:
 
-| Variable | Description |
-| -------- | ----------- |
-| templates_path | List of directories to search for templates in (default: `["templates"]`) |
+| Variable         | Description |
+| --------         | ----------- |
+| templates_path   | List of directories to search for templates in (default: `["templates"]`) |
 | default_template | Name of the template to use when one is not specified. This is required for pages generated automatically because they have child pages (default: `base.html`) |
+| default_context  | A dict used as the default context for each page |

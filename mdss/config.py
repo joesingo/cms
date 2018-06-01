@@ -12,6 +12,7 @@ class SiteConfig(dict):
     options = [
         ConfigOption("templates_path", ["templates"]),
         ConfigOption("default_template", "base.html"),
+        ConfigOption("default_context", {}),
     ]
     error_if_extra = True
 

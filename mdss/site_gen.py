@@ -65,9 +65,11 @@ class SiteGenerator(object):
         """
         Return a page HTML as a string
         """
-        context, content = page.read_page_source()
-
+        context = {}
+        context.update(self.config.default_context)
+        p_context, content = page.read_page_source()
         # modify context
+        context.update(p_context)
 
         if "macros" in context:
             code_filename = "{}:<macro>".format(page.src_path)

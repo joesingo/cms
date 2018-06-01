@@ -11,8 +11,25 @@ from mdss.config import SiteConfig, ConfigOption
 from mdss.page import Page, HomePage, PageInfo, cachedproperty
 from mdss.exceptions import InvalidPageError
 
+class BaseTest:
+    @pytest.fixture
+    def site_setup(self, tmpdir):
+        """
+        Provide py.path.local objects for content, template and export dirs,
+        and a SiteGenerator object
+        """
+        templates = tmpdir.mkdir("templates")
+        templates.join("def.html").write("{{ content }}")
 
-class TestSiteGeneration(object):
+        content = tmpdir.mkdir("content")
+        output = tmpdir.mkdir("output")
+        config = SiteConfig(templates_path=[str(templates)],
+                            default_template="def.html")
+        s_gen = SiteGenerator(str(content), config)
+        return templates, content, output, s_gen
+
+
+class TestSiteGeneration(BaseTest):
 
     def test_site_gen(self, tmpdir):
         files = []
@@ -122,6 +139,28 @@ class TestSiteGeneration(object):
             lines = filter(None, contents.strip().split("\n"))
             assert list(lines) == [p + ", " + t for p, t in expected_breadcrumbs]
 
+    def test_default_context(self, site_setup):
+        templates, content, output, s_gen = site_setup
+        templates.join("d.html").write("{{ the_ultimate_answer }}")
+        s_gen.config["default_template"] = "d.html"
+
+        content.join("use-default.md").write("")
+        content.join("override.md").write("the_ultimate_answer: 15")
+
+        use_def_output = output.join("use-default/index.html")
+        override_output = output.join("override/index.html")
+
+        # without default context set
+        s_gen.gen_site(str(output))
+        assert use_def_output.read() == ""
+        assert override_output.read() == "15"
+
+        # with default context set
+        s_gen.config["default_context"] = {"the_ultimate_answer": 42}
+        s_gen.gen_site(str(output))
+        assert use_def_output.read() == "42"
+        assert override_output.read() == "15"
+
     def test_split_path(self):
         def t(p): return SiteGenerator.split_path(p)
         assert t("/one/two/three/four.md") == ["one", "two", "three",
@@ -132,20 +171,7 @@ class TestSiteGeneration(object):
         assert t("relative/dir/") == ["relative", "dir"]
 
 
-class TestPageRendering(object):
-
-    @pytest.fixture
-    def site_setup(self, tmpdir):
-        templates = tmpdir.mkdir("templates")
-        templates.join("def.html").write("{{ content }}")
-
-        content = tmpdir.mkdir("content")
-        output = tmpdir.mkdir("output")
-        config = SiteConfig(templates_path=[str(templates)],
-                            default_template="def.html")
-        s_gen = SiteGenerator(str(content), config)
-        return templates, content, output, s_gen
-
+class TestPageRendering(BaseTest):
 
     def create_test_page(self, tmpdir, page_id="test", contents_str=None,
                          context={}, content=None):
@@ -388,7 +414,7 @@ class TestPageRendering(object):
         ]
 
 
-class TestConfigs(object):
+class TestConfigs(BaseTest):
     def test_basic(self):
         class MyConfig(SiteConfig):
             options = [
@@ -438,7 +464,7 @@ class TestConfigs(object):
 
 
 
-class TestMacros(object):
+class TestMacros(BaseTest):
     def test_macros(self, tmpdir):
         templates = tmpdir.mkdir("templates")
         templates.join("c.html").write("{{ content }}")
@@ -496,7 +522,7 @@ class TestMacros(object):
             s_gen.gen_site(str(output))
 
 
-class TestCachedPropertyDecorator(object):
+class TestCachedPropertyDecorator(BaseTest):
     def test_cached_prop_decorator(self):
         class MyClass:
             def __init__(self):
