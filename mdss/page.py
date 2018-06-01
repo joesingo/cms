@@ -37,7 +37,11 @@ class Page(object):
     """
 
     # string used to separate context and content
-    SECTION_SEPARATOR = "---"
+    section_separator = "---"
+
+    markdown_extensions = ["markdown.extensions.tables",
+                           "markdown.extensions.fenced_code",
+                           "markdown.extensions.codehilite"]
 
     def __init__(self, p_id, src_path=None):
         """
@@ -117,7 +121,7 @@ class Page(object):
         """
         Convert page content and return HTML as a string
         """
-        return markdown.markdown(md_str)
+        return markdown.markdown(md_str, extensions=cls.markdown_extensions)
 
     @classmethod
     def parse_context(cls, context_str):
@@ -149,7 +153,7 @@ class Page(object):
 
         with open(self.src_path) as f:
             for line in f.readlines():
-                if line.strip() == self.SECTION_SEPARATOR:
+                if line.strip() == self.section_separator:
                     if context_only:
                         break
                     context_section = False

@@ -179,7 +179,7 @@ class TestPageRendering(BaseTest):
 
         if not contents_str:
             contents_str = yaml.dump(context)
-            contents_str += os.linesep + Page.SECTION_SEPARATOR + os.linesep
+            contents_str += os.linesep + Page.section_separator + os.linesep
             contents_str += content
 
         tmp_file.write(contents_str)
