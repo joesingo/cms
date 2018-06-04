@@ -29,7 +29,7 @@ class PageInfo:
         self.children = children or []
 
 
-class Page(object):
+class Page:
     """
     Class representing a page in the website. This may be a page corresponding
     to a source file, or an index page generated for a directory that contains

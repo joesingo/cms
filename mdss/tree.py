@@ -1,7 +1,7 @@
 from mdss.page import Page, HomePage
 
 
-class SiteTree(object):
+class SiteTree:
     """
     A tree to store the hierarchy of pages
     """

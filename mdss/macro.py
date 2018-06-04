@@ -18,7 +18,7 @@ class HTMLAttributeParser(HTMLParser):
         return dict(self.attrs)
 
 
-class MacroHandler(object):
+class MacroHandler:
 
     # regex to match macro invocations in page content
     macro_regex = re.compile(

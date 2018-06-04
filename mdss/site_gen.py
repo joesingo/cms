@@ -8,7 +8,7 @@ from mdss.tree import SiteTree
 from mdss.macro import MacroHandler
 
 
-class SiteGenerator(object):
+class SiteGenerator:
     """
     Handle generation of the website from source files
     """
