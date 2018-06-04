@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -33,21 +34,22 @@ class SiteGenerator(object):
 
     def add_page(self, page_path):
         """
-        Insert a page at the given source path into the site tree
+        Insert a page at the given source path (relative to content directory)
+        into the site tree
         """
-        relpath = os.path.relpath(page_path, start=self.content_dir)
-        parts = SiteGenerator.split_path(relpath[:-3])
+        full_path = os.path.join(self.content_dir, page_path)
+        parts = SiteGenerator.split_path(page_path[:-3])
 
         # special case for home page
         if parts == ["index"]:
-            self.tree.set_root_path(page_path)
+            self.tree.set_root_path(full_path)
         else:
             # remove trailing 'index'
             if parts[-1] == "index":
                 parts.pop(-1)
 
             page_id = parts[-1]
-            page = Page(page_id, src_path=page_path)
+            page = Page(page_id, src_path=full_path)
 
             self.tree.insert(page, location=parts[:-1])
 
@@ -55,11 +57,42 @@ class SiteGenerator(object):
         """
         Find all content and write rendered pages
         """
-        for dirpath, _dirnames, filenames in os.walk(self.content_dir):
-            for fname in filenames:
-                if fname.endswith(".md"):
-                    self.add_page(os.path.join(dirpath, fname))
+        # export static files
+        # go through template dirs backwards so that dirs earlier in the list
+        # have priority when there are duplicate file names
+        template_dirs = self.config.templates_path[::-1] + [self.content_dir]
+        for d in template_dirs:
+            static_files = self.walk_tree(d, self.config.static_filenames)
+            for f in static_files:
+                src = os.path.join(d, f)
+                dest = os.path.join(export_dir, f)
+
+                # make directories if dest dir doesn't not exist
+                dest_dir = os.path.dirname(dest)
+                if not os.path.isdir(dest_dir):
+                    os.makedirs(dest_dir)
+
+                shutil.copyfile(src, dest)
+
+        # build site tree
+        for f in SiteGenerator.walk_tree(self.content_dir, ["md"]):
+            self.add_page(f)
+
         self.render_all(export_dir)
+
+    @classmethod
+    def walk_tree(cls, start_dir, extensions):
+        """
+        Recursively walk `start_dir` and yield relative paths to all files
+        whose extension is listed in `extensions`
+        """
+        for dirpath, _, filenames in os.walk(start_dir):
+            for fname in filenames:
+                ext = os.path.splitext(fname)[1][1:]
+                if ext in extensions:
+                    relpath = os.path.relpath(os.path.join(dirpath, fname),
+                                              start=start_dir)
+                    yield relpath
 
     def render_page(self, page):
         """

@@ -13,6 +13,7 @@ class SiteConfig(dict):
         ConfigOption("templates_path", ["templates"]),
         ConfigOption("default_template", "base.html"),
         ConfigOption("default_context", {}),
+        ConfigOption("static_filenames", ["css", "js", "png", "jpg", "gif", "wav"]),
     ]
     error_if_extra = True
 

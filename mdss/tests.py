@@ -171,6 +171,48 @@ class TestSiteGeneration(BaseTest):
         assert t("relative/dir/") == ["relative", "dir"]
 
 
+class TestStaticFiles(BaseTest):
+    def test_static(self, site_setup):
+        templates, content, output, s_gen = site_setup
+
+        # static files in template dirs
+        t1 = templates.mkdir("t1")
+        t2 = templates.mkdir("t2")
+        # override same file
+        t1.join("style.css").write("t1 version")
+        t2.join("style.css").write("t2 version")
+        # static file in a subdirectory
+        t1.mkdir("subdir").join("script.js").write("script")
+        t2.mkdir("subdir").join("image.bmp").write("")
+
+        # static files in content dir
+        content.mkdir("static").mkdir("css").join("page.css").write("")
+        # create files that should be excluded
+        content.join("somefile.py").write("")
+        content.join("content.md").write("")
+
+        s_gen.config.templates_path = [str(t2), str(t1)]
+        s_gen.config.static_filenames = ["css", "js", "bmp"]
+        s_gen.gen_site(str(output))
+
+        style_css = output.join("style.css")
+        assert style_css.check()
+        assert style_css.read() == "t2 version"
+
+        script_js = output.join("subdir", "script.js")
+        assert script_js.check()
+        image_bmp = output.join("subdir", "image.bmp")
+        assert image_bmp.check()
+
+        content_css = output.join("static", "css", "page.css")
+        assert content_css.check()
+
+        excluded_file_1 = output.join("somefile.py")
+        excluded_file_2 = output.join("content.md")
+        assert not excluded_file_1.check()
+        assert not excluded_file_2.check()
+
+
 class TestPageRendering(BaseTest):
 
     def create_test_page(self, tmpdir, page_id="test", contents_str=None,
@@ -461,7 +503,6 @@ class TestConfigs(BaseTest):
         assert SiteConfig.find_site_config(str(three)) == str(cfg)
         with pytest.raises(ValueError):
             SiteConfig.find_site_config(str(one))
-
 
 
 class TestMacros(BaseTest):

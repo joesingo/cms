@@ -70,6 +70,22 @@ Some additional variables are set by mdss itself:
 | breadcrumbs | [Breadcrumbs](http://ui-patterns.com/patterns/Breadcrumbs) as a list of pages starting with the home page and ending with current page. Each page has properties `path` (relative URL to page) and `title` |
 | children    | List of child pages sorted by title. Each item in the list has properties `path`, `title` and `children` (loop through the `children` property recursively to get *all* pages beneath this one in the hierarchy) |
 
+### Static files
+
+Static files (e.g. CSS, JavaScript, images) can also be exported. Any file
+whose extension is listed in `static_filetypes` config option (see [site
+configuration](#site-configuration)) will be copied to the output directory
+when the site is exported.
+
+The path of the static file relative to the root of the content directory is
+preserved, e.g. if there is a file `content/a/b/c/style.css`, it will be copied
+to `output/a/b/c/style.css`
+
+Static files from template directories (see [site
+configuration](#site-configuration)) are also exported in the same way. Note
+that the files are not 'namespaced' in any way, so files may be overwritten if
+several template directories contain static files with the same relative path.
+
 ### Directory structure
 
 Content is structured in a hierarchical manner that can go as many layers deep
@@ -167,5 +183,6 @@ The available config options are:
 | Variable         | Description |
 | --------         | ----------- |
 | templates_path   | List of directories to search for templates in (default: `["templates"]`) |
+| static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "wav"]`) |
 | default_template | Name of the template to use when one is not specified. This is required for pages generated automatically because they have child pages (default: `base.html`) |
 | default_context  | A dict used as the default context for each page |
