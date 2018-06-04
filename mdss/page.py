@@ -41,6 +41,7 @@ class Page(object):
 
     markdown_extensions = ["markdown.extensions.tables",
                            "markdown.extensions.fenced_code",
+                           "markdown.extensions.toc",
                            "markdown.extensions.codehilite"]
 
     def __init__(self, p_id, src_path=None):
