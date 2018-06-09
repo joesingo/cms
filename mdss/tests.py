@@ -516,7 +516,7 @@ class TestMacros(BaseTest):
             "    def simplemacro(s):",
             "        return s.upper()",
             "    def withkwargs(s, **kwargs):",
-            "        return repr(kwargs)",
+            "        return repr(sorted(kwargs.items()))",
             "---",
             "Macros are <?simplemacro>good<?/simplemacro>",
             "They can span",
@@ -539,7 +539,7 @@ class TestMacros(BaseTest):
 
         assert "Macros are GOOD" in contents
         assert "MULTIPLE LINES" in contents
-        exp_repr = repr({"name": "joe", "job": "software dev", "age": "21"})
+        exp_repr = repr([("age", "21"), ("job", "software dev"), ("name", "joe")])
         assert exp_repr in contents
 
     def test_invalid_name(self, tmpdir):
