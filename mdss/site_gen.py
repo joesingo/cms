@@ -119,6 +119,7 @@ class SiteGenerator:
 
         context["breadcrumbs"] = page.breadcrumbs
         context["children"] = page.child_listing()
+        context["sitemap"] = self.tree.root.child_listing()
 
         template = self.env.get_template(context.pop("template"))
         return template.render(**context)

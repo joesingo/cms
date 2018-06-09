@@ -455,6 +455,56 @@ class TestPageRendering(BaseTest):
             "</ul>",
         ]
 
+    def test_sitemap(self, site_setup):
+        # use the same setup as for child listing test above
+        templates, content, output, s_gen = site_setup
+        templates.join("p.html").write("\n".join([
+            "<ul>",
+            "{% for p in sitemap recursive %}",
+                "<li>{{ p.path}}, {{ p.title }}</li>",
+                "{% if p.children %}",
+                    "<ul>",
+                    "{{ loop(p.children) }}",
+                    "</ul>",
+                "{% endif %}",
+            "{% endfor %}"
+            "</ul>",
+        ]))
+
+        files = [
+            "foo/bar/baz.md",
+            "foo/bar2/aaaa.md"
+        ]
+
+        for i, f in enumerate(files):
+            p = content.join(f)
+            if not local(p.dirname).check():
+                os.makedirs(p.dirname)
+            p.write("")
+
+        s_gen.config["default_template"] = "p.html"
+        s_gen.gen_site(str(output))
+
+        remove_empties = lambda l: list(filter(None, map(str.strip, l)))
+        bar2 = output.join("foo", "bar2", "index.html")
+        assert bar2.check()
+        assert remove_empties(bar2.readlines()) == [
+            "<ul>",
+                "<li>/foo/, Foo</li>",
+                "<ul>",
+                    "<li>/foo/bar/, Bar</li>",
+                    "<ul>",
+                        "<li>/foo/bar/baz/, Baz</li>",
+                    "</ul>",
+                    "<li>/foo/bar2/, Bar2</li>",
+                    "<ul>",
+                        "<li>/foo/bar2/aaaa/, Aaaa</li>",
+                    "</ul>",
+                "</ul>",
+            "</ul>"
+        ]
+
+
 
 class TestConfigs(BaseTest):
     def test_basic(self):
