@@ -67,12 +67,12 @@ class MacroHandler(object):
         macro output
         """
         try:
-            func = self.macros[match["name"]]
+            func = self.macros[match.group("name")]
         except KeyError:
-            raise KeyError("Macro '{}' not found".format(match["name"]))
+            raise KeyError("Macro '{}' not found".format(match.group("name")))
 
         kwargs = {}
-        if match["kwargs"] is not None:
-            kwargs = self.kwargs_parser(match["kwargs"])
+        if match.group("kwargs") is not None:
+            kwargs = self.kwargs_parser(match.group("kwargs"))
 
-        return func(match["string"], **kwargs)
+        return func(match.group("string"), **kwargs)
