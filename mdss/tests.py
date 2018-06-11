@@ -24,8 +24,9 @@ class BaseTest:
         content = tmpdir.mkdir("content")
         output = tmpdir.mkdir("output")
         config = SiteConfig(templates_path=[str(templates)],
-                            default_template="def.html")
-        s_gen = SiteGenerator(str(content), config)
+                            default_template="def.html",
+                            content=str(content))
+        s_gen = SiteGenerator(config)
         return templates, content, output, s_gen
 
 
@@ -63,8 +64,8 @@ class TestSiteGeneration(BaseTest):
             f.write("---\n")
 
         config = SiteConfig(templates_path=[str(templates)],
-                            default_template="t.html")
-        s = SiteGenerator(str(content), config)
+                            default_template="t.html", content=str(content))
+        s = SiteGenerator(config)
         output = tmpdir.mkdir("output")
         s.gen_site(str(output))
         all_files = []
@@ -127,8 +128,8 @@ class TestSiteGeneration(BaseTest):
             content.join(path).write("---")
 
         config = SiteConfig(templates_path=[str(templates)],
-                            default_template="b.html")
-        s_gen = SiteGenerator(str(content), config=config)
+                            default_template="b.html", content=str(content))
+        s_gen = SiteGenerator(config)
 
         output = tmpdir.mkdir("output")
         s_gen.gen_site(str(output))
@@ -259,8 +260,8 @@ class TestPageRendering(BaseTest):
         ]))
 
         config = SiteConfig(templates_path=[str(templates)],
-                            default_template="t123.html")
-        s_gen = SiteGenerator(content_dir=str(content), config=config)
+                            default_template="t123.html", content=str(content))
+        s_gen = SiteGenerator(config)
 
         output = tmpdir.mkdir("output")
         out_dir = str(output)
@@ -316,30 +317,28 @@ class TestPageRendering(BaseTest):
         templates = tmpdir.mkdir("templates")
         templates.join("t.html").write("{{ content }}")
         config = SiteConfig(default_template="t.html",
-                            templates_path=[str(templates)])
+                            templates_path=[str(templates)], content="")
 
         page = self.create_test_page(tmpdir,
                                      content="This should be **Markdown**")
-        s_gen = SiteGenerator(content_dir=None, config=config)
+        s_gen = SiteGenerator(config)
         expected_html = "<p>This should be <strong>Markdown</strong></p>"
         assert s_gen.render_page(page) == expected_html
 
-    def test_title_handling(self, tmpdir):
+    def test_title_handling(self, site_setup):
         """
         Check that a title is generated based on filename if title not
         specified in page context.
 
         Check that if a title is specified it is used in breadcrumbs
         """
-        templates = tmpdir.mkdir("templates")
+        templates, content, output, s_gen = site_setup
+
         templates.join("t.html").write("{{ title }}")
         templates.join("b.html").write(
             "{{ breadcrumbs|map(attribute='title')|join(', ') }}"
         )
-        config = SiteConfig(default_template="t.html",
-                            templates_path=[str(templates)])
 
-        content = tmpdir.mkdir("content")
         with_title = content.mkdir("with-title")
         with_title.join("index.md").write("\n".join([
             "template: t.html",
@@ -356,8 +355,7 @@ class TestPageRendering(BaseTest):
             "---"
         ]))
 
-        s_gen = SiteGenerator(str(content), config)
-        output = tmpdir.mkdir("output")
+        s_gen.config["default_template"] = "t.html"
         s_gen.gen_site(str(output))
 
         with_title_output = output.join("with-title", "index.html")
@@ -583,8 +581,8 @@ class TestMacros(BaseTest):
         ]))
 
         config = SiteConfig(templates_path=[str(templates)],
-                            default_template="c.html")
-        s_gen = SiteGenerator(str(content), config)
+                            default_template="c.html", content=str(content))
+        s_gen = SiteGenerator(config)
         output = tmpdir.mkdir("output")
         s_gen.gen_site(str(output))
 
@@ -611,8 +609,8 @@ class TestMacros(BaseTest):
         ]))
 
         config = SiteConfig(templates_path=[str(templates)],
-                            default_template="c.html")
-        s_gen = SiteGenerator(str(content), config)
+                            default_template="c.html", content=str(content))
+        s_gen = SiteGenerator(config)
         output = tmpdir.mkdir("output")
         with pytest.raises(KeyError):
             s_gen.gen_site(str(output))

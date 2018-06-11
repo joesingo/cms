@@ -9,6 +9,15 @@ There are plenty of similar tools available; mdss is intended as a simple
 alternative that requires little configuration or additional markup in your
 content files.
 
+## Usage
+
+Create a config file called `mdss_config.yml`
+(see [Site Configuration](#site-configuration)), and run
+
+    mdss <export dir>
+
+ HTML files will be written under `<output dir>`.
+
 ## Content
 
 ### Pages

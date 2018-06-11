@@ -124,15 +124,15 @@ class Page:
         """
         return markdown.markdown(md_str, extensions=cls.markdown_extensions)
 
-    @classmethod
-    def parse_context(cls, context_str):
+    def parse_context(self, context_str):
         """
         Parse the context section and return a dict
         """
         try:
             context = yaml.load(context_str) or {}
         except yaml.scanner.ScannerError:
-            raise InvalidPageError("Context was not valid YAML")
+            raise InvalidPageError("Context was not valid YAML in file '{}'"
+                                   .format(self.src_path))
 
         return context
 

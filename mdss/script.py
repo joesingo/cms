@@ -9,10 +9,6 @@ from mdss.site_gen import SiteGenerator
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "content_dir",
-        help="The directory containing Markdown content"
-    )
-    parser.add_argument(
         "export_dir",
         help="The directory to export HTML files to"
     )
@@ -28,7 +24,7 @@ def main():
     with open(config_path) as f:
         config_dict = yaml.load(f)
     config = SiteConfig(config_dict)
-    SiteGenerator(args.content_dir, config).gen_site(args.export_dir)
+    SiteGenerator(config).gen_site(args.export_dir)
 
 
 if __name__ == "__main__":

@@ -13,9 +13,8 @@ class SiteGenerator:
     """
     Handle generation of the website from source files
     """
-    def __init__(self, content_dir, config):
+    def __init__(self, config):
         self.tree = SiteTree()
-        self.content_dir = content_dir
         self.config = config
         self.env = Environment(
             loader=FileSystemLoader(self.config.templates_path)
@@ -38,7 +37,7 @@ class SiteGenerator:
         Insert a page at the given source path (relative to content directory)
         into the site tree
         """
-        full_path = os.path.join(self.content_dir, page_path)
+        full_path = os.path.join(self.config.content, page_path)
         parts = SiteGenerator.split_path(page_path[:-3])
 
         # special case for home page
@@ -61,7 +60,7 @@ class SiteGenerator:
         # export static files
         # go through template dirs backwards so that dirs earlier in the list
         # have priority when there are duplicate file names
-        template_dirs = self.config.templates_path[::-1] + [self.content_dir]
+        template_dirs = self.config.templates_path[::-1] + [self.config.content]
         for d in template_dirs:
             static_files = self.walk_tree(d, self.config.static_filenames)
             for f in static_files:
@@ -77,13 +76,13 @@ class SiteGenerator:
 
         # build site tree
         content_found = False
-        for f in self.walk_tree(self.content_dir, ["md"]):
+        for f in self.walk_tree(self.config.content, ["md"]):
             content_found = True
             self.add_page(f)
 
         if not content_found:
             raise NoContentError("Did not find any content .md files in '{}'"
-                                 .format(self.content_dir))
+                                 .format(self.config.content))
 
         self.render_all(export_dir)
 
@@ -93,6 +92,9 @@ class SiteGenerator:
         Recursively walk `start_dir` and yield relative paths to all files
         whose extension is listed in `extensions`
         """
+        if not os.path.isdir(start_dir):
+            raise IOError("No such directory '{}'".format(start_dir))
+
         for dirpath, _, filenames in os.walk(start_dir):
             for fname in filenames:
                 ext = os.path.splitext(fname)[1][1:]

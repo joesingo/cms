@@ -10,6 +10,7 @@ class SiteConfig(dict):
     Class to represent a global site configuration
     """
     options = [
+        ConfigOption("content", None),
         ConfigOption("templates_path", ["templates"]),
         ConfigOption("default_template", "base.html"),
         ConfigOption("default_context", {}),
