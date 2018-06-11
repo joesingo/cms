@@ -9,7 +9,7 @@ from mdss.site_gen import SiteGenerator
 from mdss.tree import SiteTree
 from mdss.config import SiteConfig, ConfigOption
 from mdss.page import Page, HomePage, PageInfo, cachedproperty
-from mdss.exceptions import InvalidPageError
+from mdss.exceptions import InvalidPageError, NoContentError
 
 class BaseTest:
     @pytest.fixture
@@ -86,6 +86,11 @@ class TestSiteGeneration(BaseTest):
             "d1/d2/d3/index.html",
             "d1/d2/d3/three/index.html"
         ])
+
+    def test_no_content(self, site_setup):
+        templates, content, output, s_gen = site_setup
+        with pytest.raises(NoContentError):
+            s_gen.gen_site(str(output))
 
     def test_breadcrumbs(self, tmpdir):
         templates = tmpdir.mkdir("templates")

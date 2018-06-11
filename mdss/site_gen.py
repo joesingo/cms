@@ -3,6 +3,7 @@ import shutil
 
 from jinja2 import Environment, FileSystemLoader
 
+from mdss.exceptions import NoContentError
 from mdss.page import Page
 from mdss.tree import SiteTree
 from mdss.macro import MacroHandler
@@ -75,8 +76,14 @@ class SiteGenerator:
                 shutil.copyfile(src, dest)
 
         # build site tree
-        for f in SiteGenerator.walk_tree(self.content_dir, ["md"]):
+        content_found = False
+        for f in self.walk_tree(self.content_dir, ["md"]):
+            content_found = True
             self.add_page(f)
+
+        if not content_found:
+            raise NoContentError("Did not find any content .md files in '{}'"
+                                 .format(self.content_dir))
 
         self.render_all(export_dir)
 
