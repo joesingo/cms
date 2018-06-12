@@ -5,25 +5,16 @@ from collections import namedtuple
 ConfigOption = namedtuple("ConfigOption", ["name", "default"])
 
 
-class SiteConfig(dict):
+class BaseConfig(dict):
     """
-    Class to represent a global site configuration
+    Base config object to handle validation and default values
     """
-    options = [
-        ConfigOption("content", None),
-        ConfigOption("templates_path", ["templates"]),
-        ConfigOption("default_template", "base.html"),
-        ConfigOption("default_context", {}),
-        ConfigOption("static_filenames", ["css", "js", "png", "jpg", "gif", "wav"]),
-    ]
+    options = []
     error_if_extra = True
-
-    # filename to look for when searching for site config
-    config_filename = "mdss_config.yml"
 
     def __init__(self, d=None, **kwargs):
         """
-        Initialise this config from another dictionary and validate items
+        Initialise this config from another dictionary and validate items.
         """
         super().__init__()
 
@@ -33,7 +24,15 @@ class SiteConfig(dict):
 
         for opt in self.options:
             if opt.name in d:
-                self[opt.name] = d.pop(opt.name)
+                value = d.pop(opt.name)
+
+                # call post-processing function if one is defined
+                func_name = "process_{}".format(opt.name)
+                if hasattr(self, func_name):
+                    value = getattr(self, func_name)(value)
+
+                self[opt.name] = value
+
             elif opt.default is not None:
                 self[opt.name] = opt.default
             else:
@@ -49,7 +48,27 @@ class SiteConfig(dict):
             )
 
     def __getattr__(self, x):
-        return self[x]
+        try:
+            return self[x]
+        except KeyError:
+            raise AttributeError
+
+
+class SiteConfig(BaseConfig):
+    """
+    Class to represent a global site configuration
+    """
+    options = [
+        ConfigOption("content", None),
+        ConfigOption("templates_path", ["templates"]),
+        ConfigOption("default_template", "base.html"),
+        ConfigOption("default_context", {}),
+        ConfigOption("static_filenames", ["css", "js", "png", "jpg", "gif", "wav"]),
+    ]
+    error_if_extra = True
+
+    # filename to look for when searching for site config
+    config_filename = "mdss_config.yml"
 
     @classmethod
     def find_site_config(cls, directory=None):
@@ -65,3 +84,9 @@ class SiteConfig(dict):
         else:
             err_msg = "Cannot find '{}' file".format(cls.config_filename)
             raise ValueError(err_msg)
+
+    def process_content(self, content_dir):
+        return os.path.expanduser(content_dir)
+
+    def process_templates_path(self, t_path):
+        return list(map(os.path.expanduser, t_path))

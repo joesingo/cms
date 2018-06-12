@@ -7,7 +7,7 @@ from py.path import local
 
 from mdss.site_gen import SiteGenerator
 from mdss.tree import SiteTree
-from mdss.config import SiteConfig, ConfigOption
+from mdss.config import BaseConfig, SiteConfig, ConfigOption
 from mdss.page import Page, HomePage, PageInfo, cachedproperty
 from mdss.exceptions import InvalidPageError, NoContentError
 
@@ -511,7 +511,7 @@ class TestPageRendering(BaseTest):
 
 class TestConfigs(BaseTest):
     def test_basic(self):
-        class MyConfig(SiteConfig):
+        class MyConfig(BaseConfig):
             options = [
                 ConfigOption("optional", "hello"),
                 ConfigOption("required", None)
@@ -530,11 +530,11 @@ class TestConfigs(BaseTest):
     def test_error_on_extra(self):
         opts = [ConfigOption("opt", 4)]
 
-        class ShouldError(SiteConfig):
+        class ShouldError(BaseConfig):
             options = opts
             error_if_extra = True
 
-        class ShouldNotError(SiteConfig):
+        class ShouldNotError(BaseConfig):
             options = opts
             error_if_extra = False
 
@@ -556,6 +556,27 @@ class TestConfigs(BaseTest):
         assert SiteConfig.find_site_config(str(three)) == str(cfg)
         with pytest.raises(ValueError):
             SiteConfig.find_site_config(str(one))
+
+    def test_processing(self):
+        class ProcessedConfig(BaseConfig):
+            options = [
+                ConfigOption("x", "hello"),
+                ConfigOption("y", None)
+            ]
+
+            def process_x(self, s):
+                return s[0]
+
+            def process_y(self, s):
+                return s.upper()
+
+        cfg1 = ProcessedConfig(y="elephant")
+        assert cfg1.x == "hello"
+        assert cfg1.y == "ELEPHANT"
+
+        cfg2 = ProcessedConfig(x="greetings", y="lion")
+        assert cfg2.x == "g"
+        assert cfg2.y == "LION"
 
 
 class TestMacros(BaseTest):
