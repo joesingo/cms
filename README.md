@@ -83,7 +83,7 @@ Some additional variables are set by mdss itself:
 ### Static files
 
 Static files (e.g. CSS, JavaScript, images) can also be exported. Any file
-whose extension is listed in `static_filetypes` config option (see [site
+whose extension is listed in `static_filenames` config option (see [site
 configuration](#site-configuration)) will be copied to the output directory
 when the site is exported.
 
