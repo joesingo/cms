@@ -9,14 +9,53 @@ There are plenty of similar tools available; mdss is intended as a simple
 alternative that requires little configuration or additional markup in your
 content files.
 
-## Usage
+## Quickstart
 
-Create a config file called `mdss_config.yml`
-(see [Site Configuration](#site-configuration)), and run
+Install with pip into a Python3 installation (probably in a virtualenv)
 
-    mdss <export dir>
+```
+pip3 install git+https://github.com/joesingo/mdss
+```
 
- HTML files will be written under `<output dir>`.
+Create a directory to store your site's content, and create some content. E.g.
+
+page1.md:
+```
+title: First page
+---
+This is page **1**
+```
+
+page2.md
+```
+title: Second page
+---
+This is page **2**
+```
+
+Get an example 'theme':
+
+```
+git clone https://github.com/joesingo/personal-website-theme
+```
+
+Create a config file called `mdss_config.yml`:
+
+```yaml
+content: <content dir created above>
+theme_dir: <path to personal-website-theme checkout>
+default_template: base.html
+default_context:
+    sitename: <name of the website>
+```
+
+Export the site:
+```
+mdss <export dir>
+```
+
+Output files will be written under `<output dir>`. More thorough documentation
+is included below.
 
 ## Content
 
