@@ -1,4 +1,3 @@
----
 # markdown static site generator
 
 **m**arkdown **s**tatic **s**ite generator is a simple program that generates
