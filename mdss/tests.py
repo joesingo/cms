@@ -23,7 +23,7 @@ class BaseTest:
 
         content = tmpdir.mkdir("content")
         output = tmpdir.mkdir("output")
-        config = SiteConfig(templates_path=[str(templates)],
+        config = SiteConfig(theme_dir=str(templates),
                             default_template="def.html",
                             content=str(content))
         s_gen = SiteGenerator(config)
@@ -63,7 +63,7 @@ class TestSiteGeneration(BaseTest):
         for f in files:
             f.write("---\n")
 
-        config = SiteConfig(templates_path=[str(templates)],
+        config = SiteConfig(theme_dir=str(templates),
                             default_template="t.html", content=str(content))
         s = SiteGenerator(config)
         output = tmpdir.mkdir("output")
@@ -127,7 +127,7 @@ class TestSiteGeneration(BaseTest):
                 os.makedirs(dirname)
             content.join(path).write("---")
 
-        config = SiteConfig(templates_path=[str(templates)],
+        config = SiteConfig(theme_dir=str(templates),
                             default_template="b.html", content=str(content))
         s_gen = SiteGenerator(config)
 
@@ -181,15 +181,13 @@ class TestStaticFiles(BaseTest):
     def test_static(self, site_setup):
         templates, content, output, s_gen = site_setup
 
-        # static files in template dirs
+        # static files in template dir
         t1 = templates.mkdir("t1")
-        t2 = templates.mkdir("t2")
-        # override same file
-        t1.join("style.css").write("t1 version")
-        t2.join("style.css").write("t2 version")
+        t1.join("style.css").write("t1 file")
         # static file in a subdirectory
-        t1.mkdir("subdir").join("script.js").write("script")
-        t2.mkdir("subdir").join("image.bmp").write("")
+        subdir = t1.mkdir("subdir")
+        subdir.join("script.js").write("script")
+        subdir.join("image.bmp").write("")
 
         # static files in content dir
         content.mkdir("static").mkdir("css").join("page.css").write("")
@@ -197,13 +195,17 @@ class TestStaticFiles(BaseTest):
         content.join("somefile.py").write("")
         content.join("content.md").write("")
 
-        s_gen.config.templates_path = [str(t2), str(t1)]
+        # overwrite same file
+        t1.join("double.css").write("t1 version")
+        content.join("double.css").write("content version")
+
+        s_gen.config.theme_dir = str(t1)
         s_gen.config.static_filenames = ["css", "js", "bmp"]
         s_gen.gen_site(str(output))
 
         style_css = output.join("style.css")
         assert style_css.check()
-        assert style_css.read() == "t2 version"
+        assert style_css.read() == "t1 file"
 
         script_js = output.join("subdir", "script.js")
         assert script_js.check()
@@ -217,6 +219,10 @@ class TestStaticFiles(BaseTest):
         excluded_file_2 = output.join("content.md")
         assert not excluded_file_1.check()
         assert not excluded_file_2.check()
+
+        double_file = output.join("double.css")
+        assert double_file.check()
+        assert double_file.read() == "content version"
 
 
 class TestPageRendering(BaseTest):
@@ -259,7 +265,7 @@ class TestPageRendering(BaseTest):
             "page contents here"
         ]))
 
-        config = SiteConfig(templates_path=[str(templates)],
+        config = SiteConfig(theme_dir=str(templates),
                             default_template="t123.html", content=str(content))
         s_gen = SiteGenerator(config)
 
@@ -317,7 +323,7 @@ class TestPageRendering(BaseTest):
         templates = tmpdir.mkdir("templates")
         templates.join("t.html").write("{{ content }}")
         config = SiteConfig(default_template="t.html",
-                            templates_path=[str(templates)], content="")
+                            theme_dir=str(templates), content="")
 
         page = self.create_test_page(tmpdir,
                                      content="This should be **Markdown**")
@@ -601,7 +607,7 @@ class TestMacros(BaseTest):
             "<?withkwargs name=joe job='software dev' age=\"21\">blah<?/withkwargs>"
         ]))
 
-        config = SiteConfig(templates_path=[str(templates)],
+        config = SiteConfig(theme_dir=str(templates),
                             default_template="c.html", content=str(content))
         s_gen = SiteGenerator(config)
         output = tmpdir.mkdir("output")
@@ -629,7 +635,7 @@ class TestMacros(BaseTest):
             "<?mymacro>hello<?/mymacro>"
         ]))
 
-        config = SiteConfig(templates_path=[str(templates)],
+        config = SiteConfig(theme_dir=str(templates),
                             default_template="c.html", content=str(content))
         s_gen = SiteGenerator(config)
         output = tmpdir.mkdir("output")

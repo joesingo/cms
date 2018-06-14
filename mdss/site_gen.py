@@ -17,7 +17,7 @@ class SiteGenerator:
         self.tree = SiteTree()
         self.config = config
         self.env = Environment(
-            loader=FileSystemLoader(self.config.templates_path)
+            loader=FileSystemLoader(self.config.theme_dir)
         )
 
     @classmethod
@@ -58,9 +58,7 @@ class SiteGenerator:
         Find all content and write rendered pages
         """
         # export static files
-        # go through template dirs backwards so that dirs earlier in the list
-        # have priority when there are duplicate file names
-        template_dirs = self.config.templates_path[::-1] + [self.config.content]
+        template_dirs = [self.config.theme_dir, self.config.content]
         for d in template_dirs:
             static_files = self.walk_tree(d, self.config.static_filenames)
             for f in static_files:

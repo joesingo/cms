@@ -63,7 +63,7 @@ meaning:
 
 | Variable | Description |
 | -------- | ----------- |
-| template | The template to render the page with. This must be a filename found in one of the `template_path` directories (see [site configuration](#site-configuration)) |
+| template | The template to render the page with. This must be a filename relative to the `theme_dir` directory (see [site configuration](#site-configuration)) |
 | macros   | Python functions(s) that can be used as macros in the content section. See [macros](#macros) for examples. |
 
 ### Templates
@@ -80,6 +80,9 @@ Some additional variables are set by mdss itself:
 | children    | List of child pages sorted by title. Each item in the list has properties `path`, `title` and `children` (loop through the `children` property recursively to get *all* pages beneath this one in the hierarchy) |
 | sitemap     | Recursive listing of all pages in the site, in the same format as `children`. This is the same as the children of the home page. |
 
+Templates are searched for in the theme directory -- see the `theme_dir`
+setting in [site configuration](#site-configuration).
+
 ### Static files
 
 Static files (e.g. CSS, JavaScript, images) can also be exported. Any file
@@ -91,10 +94,11 @@ The path of the static file relative to the root of the content directory is
 preserved, e.g. if there is a file `content/a/b/c/style.css`, it will be copied
 to `output/a/b/c/style.css`
 
-Static files from template directories (see [site
-configuration](#site-configuration)) are also exported in the same way. Note
-that the files are not 'namespaced' in any way, so files may be overwritten if
-several template directories contain static files with the same relative path.
+Static files from the theme directory (see
+[site configuration](#site-configuration)) are also exported in the same way.
+Note that the files are not 'namespaced' in any way, so files may be
+overwritten if the theme and content directories contain files with the same
+relative paths. In this case the file in the content directory is used.
 
 ### Directory structure
 
@@ -192,7 +196,7 @@ The available config options are:
 
 | Variable         | Description |
 | --------         | ----------- |
-| templates_path   | List of directories to search for templates in (default: `["templates"]`) |
+| theme_dir   | Directory containing templates and static files. See the templates [used on my personal website](https://github.com/joesingo/personal-website-theme) for an example theme |
 | static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "wav"]`) |
 | default_template | Name of the template to use when one is not specified. This is required for pages generated automatically because they have child pages (default: `base.html`) |
 | default_context  | A dict used as the default context for each page |

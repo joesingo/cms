@@ -60,7 +60,7 @@ class SiteConfig(BaseConfig):
     """
     options = [
         ConfigOption("content", None),
-        ConfigOption("templates_path", ["templates"]),
+        ConfigOption("theme_dir", None),
         ConfigOption("default_template", "base.html"),
         ConfigOption("default_context", {}),
         ConfigOption("static_filenames", ["css", "js", "png", "jpg", "gif", "wav"]),
@@ -88,5 +88,5 @@ class SiteConfig(BaseConfig):
     def process_content(self, content_dir):
         return os.path.expanduser(content_dir)
 
-    def process_templates_path(self, t_path):
-        return list(map(os.path.expanduser, t_path))
+    def process_theme_dir(self, t_path):
+        return os.path.expanduser(t_path)
