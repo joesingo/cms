@@ -77,6 +77,16 @@ Here's an example:
     ---
     This example uses *markdown*
 
+The markdown implementation used is [Python-Markdown](https://python-markdown.github.io/),
+with the following extensions:
+
+* [tables](https://python-markdown.github.io/extensions/tables)
+* [fenced_code](https://python-markdown.github.io/extensions/fenced_code_blocks)
+* [toc](https://python-markdown.github.io/extensions/toc)
+* [codehilite](https://python-markdown.github.io/extensions/code_hilite)
+
+(this similar to the flavour of Markdown used on GitHub)
+
 A simple example of `my-template.html` could be:
 
 ```html
@@ -235,6 +245,6 @@ The available config options are:
 | --------         | ----------- |
 | content          | Directory containing content files (default: the directory containing config file) |
 | default_context  | A dict used as the default context for each page |
-| default_template | Name of the template to use when one is not specified. This is required for pages generated automatically because they have child pages (default: `base.html`) |
+| default_template | Name of the template to use when one is not specified. This is required for pages that are generated automatically because they have pages beneath them (default: `base.html`) |
 | static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "wav"]`) |
 | theme_dir        | Directory containing templates and static files. See the templates [used on my personal website](https://github.com/joesingo/personal-website-theme) for an example theme |
