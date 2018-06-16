@@ -23,11 +23,21 @@ class BaseTest:
 
         content = tmpdir.mkdir("content")
         output = tmpdir.mkdir("output")
-        config = SiteConfig(theme_dir=str(templates),
-                            default_template="def.html",
-                            content=str(content))
+        config_dict = {
+            "theme_dir": str(templates),
+            "default_template": "def.html",
+            "content": str(content)
+        }
+        config_file = tmpdir.join("config.yml")
+        config_file.write(yaml.dump(config_dict))
+        config = SiteConfig(str(config_file))
         s_gen = SiteGenerator(config)
         return templates, content, output, s_gen
+
+    def create_config(self, tmpdir, cls=SiteConfig, **kwargs):
+        f = tmpdir.join("config.yml")
+        f.write(yaml.dump(kwargs))
+        return cls(str(f))
 
 
 class TestSiteGeneration(BaseTest):
@@ -63,8 +73,9 @@ class TestSiteGeneration(BaseTest):
         for f in files:
             f.write("---\n")
 
-        config = SiteConfig(theme_dir=str(templates),
-                            default_template="t.html", content=str(content))
+        config = self.create_config(tmpdir, theme_dir=str(templates),
+                                    default_template="t.html",
+                                    content=str(content))
         s = SiteGenerator(config)
         output = tmpdir.mkdir("output")
         s.gen_site(str(output))
@@ -127,8 +138,9 @@ class TestSiteGeneration(BaseTest):
                 os.makedirs(dirname)
             content.join(path).write("---")
 
-        config = SiteConfig(theme_dir=str(templates),
-                            default_template="b.html", content=str(content))
+        config = self.create_config(tmpdir, theme_dir=str(templates),
+                                    default_template="b.html",
+                                    content=str(content))
         s_gen = SiteGenerator(config)
 
         output = tmpdir.mkdir("output")
@@ -265,8 +277,9 @@ class TestPageRendering(BaseTest):
             "page contents here"
         ]))
 
-        config = SiteConfig(theme_dir=str(templates),
-                            default_template="t123.html", content=str(content))
+        config = self.create_config(tmpdir, theme_dir=str(templates),
+                                    default_template="t123.html",
+                                    content=str(content))
         s_gen = SiteGenerator(config)
 
         output = tmpdir.mkdir("output")
@@ -322,8 +335,9 @@ class TestPageRendering(BaseTest):
     def test_markdown_conversion(self, tmpdir):
         templates = tmpdir.mkdir("templates")
         templates.join("t.html").write("{{ content }}")
-        config = SiteConfig(default_template="t.html",
-                            theme_dir=str(templates), content="")
+        config = self.create_config(tmpdir, default_template="t.html",
+                                    theme_dir=str(templates),
+                                    content="")
 
         page = self.create_test_page(tmpdir,
                                      content="This should be **Markdown**")
@@ -516,7 +530,7 @@ class TestPageRendering(BaseTest):
 
 
 class TestConfigs(BaseTest):
-    def test_basic(self):
+    def test_basic(self, tmpdir):
         class MyConfig(BaseConfig):
             options = [
                 ConfigOption("optional", "hello"),
@@ -525,15 +539,16 @@ class TestConfigs(BaseTest):
 
         # missing required value
         with pytest.raises(ValueError):
-            MyConfig({"hello": 4})
+            self.create_config(tmpdir, cls=MyConfig, hello=4)
 
-        got1 = MyConfig({"required": 4}).items()
+        got1 = self.create_config(tmpdir, cls=MyConfig, required=4).items()
         assert got1 == {"required": 4, "optional": "hello"}.items()
 
-        got2 = MyConfig({"required": 4, "optional": "goodbye"}).items()
+        got2 = self.create_config(tmpdir, cls=MyConfig, required=4,
+                                  optional="goodbye").items()
         assert got2 == {"required": 4, "optional": "goodbye"}.items()
 
-    def test_error_on_extra(self):
+    def test_error_on_extra(self, tmpdir):
         opts = [ConfigOption("opt", 4)]
 
         class ShouldError(BaseConfig):
@@ -545,9 +560,9 @@ class TestConfigs(BaseTest):
             error_if_extra = False
 
         with pytest.raises(ValueError):
-            ShouldError({"extra": 5})
+            self.create_config(tmpdir, cls=ShouldError, extra=5)
 
-        got = ShouldNotError({"extra": 5}).items()
+        got = self.create_config(tmpdir, cls=ShouldNotError, extra=5).items()
         expected = {"extra": 5, "opt": 4}.items()
         assert got == expected
 
@@ -563,7 +578,7 @@ class TestConfigs(BaseTest):
         with pytest.raises(ValueError):
             SiteConfig.find_site_config(str(one))
 
-    def test_processing(self):
+    def test_processing(self, tmpdir):
         class ProcessedConfig(BaseConfig):
             options = [
                 ConfigOption("x", "hello"),
@@ -576,13 +591,28 @@ class TestConfigs(BaseTest):
             def process_y(self, s):
                 return s.upper()
 
-        cfg1 = ProcessedConfig(y="elephant")
-        assert cfg1.x == "hello"
+        cfg1 = self.create_config(tmpdir, cls=ProcessedConfig, y="elephant")
+        assert cfg1.x == "h"
         assert cfg1.y == "ELEPHANT"
 
-        cfg2 = ProcessedConfig(x="greetings", y="lion")
+        cfg2 = self.create_config(tmpdir, cls=ProcessedConfig, x="greetings",
+                                  y="lion")
         assert cfg2.x == "g"
         assert cfg2.y == "LION"
+
+    def test_find_content_dir(self, tmpdir):
+        """
+        Test that content directory defaults to directory containing config
+        """
+        cfg1 = self.create_config(tmpdir, cls=SiteConfig,
+                                  content="/some/content/dir/",
+                                  theme_dir="/blah/")
+        assert cfg1.content == "/some/content/dir/"
+
+        cfg2_file = tmpdir.join("second_content.yml")
+        cfg2_file.write(yaml.dump({"theme_dir": "/blah/"}))
+        cfg2 = SiteConfig(str(cfg2_file))
+        assert cfg2.content == cfg2_file.dirname
 
 
 class TestMacros(BaseTest):
@@ -607,8 +637,9 @@ class TestMacros(BaseTest):
             "<?withkwargs name=joe job='software dev' age=\"21\">blah<?/withkwargs>"
         ]))
 
-        config = SiteConfig(theme_dir=str(templates),
-                            default_template="c.html", content=str(content))
+        config = self.create_config(tmpdir, theme_dir=str(templates),
+                                    default_template="c.html",
+                                    content=str(content))
         s_gen = SiteGenerator(config)
         output = tmpdir.mkdir("output")
         s_gen.gen_site(str(output))
@@ -635,8 +666,9 @@ class TestMacros(BaseTest):
             "<?mymacro>hello<?/mymacro>"
         ]))
 
-        config = SiteConfig(theme_dir=str(templates),
-                            default_template="c.html", content=str(content))
+        config = self.create_config(tmpdir, theme_dir=str(templates),
+                                    default_template="c.html",
+                                    content=str(content))
         s_gen = SiteGenerator(config)
         output = tmpdir.mkdir("output")
         with pytest.raises(KeyError):

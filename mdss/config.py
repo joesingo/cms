@@ -1,6 +1,8 @@
 import os.path
 from collections import namedtuple
 
+import yaml
+
 
 ConfigOption = namedtuple("ConfigOption", ["name", "default"])
 
@@ -12,25 +14,19 @@ class BaseConfig(dict):
     options = []
     error_if_extra = True
 
-    def __init__(self, d=None, **kwargs):
+    def __init__(self, path):
         """
         Initialise this config from another dictionary and validate items.
         """
         super().__init__()
 
-        d = d or {}
-        if kwargs:
-            d.update(kwargs)
+        self.path = path
+        with open(self.path) as f:
+            d = yaml.load(f) or {}
 
         for opt in self.options:
             if opt.name in d:
                 value = d.pop(opt.name)
-
-                # call post-processing function if one is defined
-                func_name = "process_{}".format(opt.name)
-                if hasattr(self, func_name):
-                    value = getattr(self, func_name)(value)
-
                 self[opt.name] = value
 
             elif opt.default is not None:
@@ -39,6 +35,11 @@ class BaseConfig(dict):
                 raise ValueError(
                     "Required value '{}' missing".format(opt.name)
                 )
+
+            # call post-processing function if one is defined
+            func_name = "process_{}".format(opt.name)
+            if hasattr(self, func_name):
+                self[opt.name] = getattr(self, func_name)(self[opt.name])
 
         if not self.error_if_extra:
             self.update(d)
@@ -59,7 +60,8 @@ class SiteConfig(BaseConfig):
     Class to represent a global site configuration
     """
     options = [
-        ConfigOption("content", None),
+        ConfigOption("content", ""),  # default to empty string and override in
+                                      # process_content
         ConfigOption("theme_dir", None),
         ConfigOption("default_template", "base.html"),
         ConfigOption("default_context", {}),
@@ -86,6 +88,12 @@ class SiteConfig(BaseConfig):
             raise ValueError(err_msg)
 
     def process_content(self, content_dir):
+        """
+        If not given, set content dir to the parent directory of the config
+        file itself
+        """
+        if not content_dir:
+            return os.path.dirname(self.path)
         return os.path.expanduser(content_dir)
 
     def process_theme_dir(self, t_path):

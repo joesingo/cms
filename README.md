@@ -38,10 +38,9 @@ Get an example 'theme':
 git clone https://github.com/joesingo/personal-website-theme
 ```
 
-Create a config file called `mdss_config.yml`:
+Create a config file called `mdss_config.yml` in the same directory:
 
 ```yaml
-content: <content dir created above>
 theme_dir: <path to personal-website-theme checkout>
 default_template: base.html
 default_context:
@@ -234,7 +233,8 @@ The available config options are:
 
 | Variable         | Description |
 | --------         | ----------- |
-| theme_dir   | Directory containing templates and static files. See the templates [used on my personal website](https://github.com/joesingo/personal-website-theme) for an example theme |
-| static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "wav"]`) |
-| default_template | Name of the template to use when one is not specified. This is required for pages generated automatically because they have child pages (default: `base.html`) |
+| content          | Directory containing content files (default: the directory containing config file) |
 | default_context  | A dict used as the default context for each page |
+| default_template | Name of the template to use when one is not specified. This is required for pages generated automatically because they have child pages (default: `base.html`) |
+| static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "wav"]`) |
+| theme_dir        | Directory containing templates and static files. See the templates [used on my personal website](https://github.com/joesingo/personal-website-theme) for an example theme |

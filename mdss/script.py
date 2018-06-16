@@ -1,6 +1,5 @@
 import sys
 import argparse
-import yaml
 
 from mdss.config import SiteConfig
 from mdss.site_gen import SiteGenerator
@@ -21,9 +20,7 @@ def main():
     args = parser.parse_args(sys.argv[1:])
 
     config_path = args.config_file or SiteConfig.find_site_config()
-    with open(config_path) as f:
-        config_dict = yaml.load(f)
-    config = SiteConfig(config_dict)
+    config = SiteConfig(config_path)
     SiteGenerator(config).gen_site(args.export_dir)
 
 
