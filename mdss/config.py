@@ -65,7 +65,8 @@ class SiteConfig(BaseConfig):
         ConfigOption("theme_dir", None),
         ConfigOption("default_template", "base.html"),
         ConfigOption("default_context", {}),
-        ConfigOption("static_filenames", ["css", "js", "png", "jpg", "gif", "wav"]),
+        ConfigOption("static_filenames", ["css", "js", "png", "jpg", "gif",
+                                          "ico", "wav"]),
     ]
     error_if_extra = True
 

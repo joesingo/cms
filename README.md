@@ -1,3 +1,4 @@
+---
 # markdown static site generator
 
 **m**arkdown **s**tatic **s**ite generator is a simple program that generates
@@ -246,5 +247,5 @@ The available config options are:
 | content          | Directory containing content files (default: the directory containing config file) |
 | default_context  | A dict used as the default context for each page |
 | default_template | Name of the template to use when one is not specified. This is required for pages that are generated automatically because they have pages beneath them (default: `base.html`) |
-| static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "wav"]`) |
+| static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "ico", "wav"]`) |
 | theme_dir        | Directory containing templates and static files. See the templates [used on my personal website](https://github.com/joesingo/personal-website-theme) for an example theme |
