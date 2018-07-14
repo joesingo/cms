@@ -1,6 +1,8 @@
 from operator import attrgetter
 
 import yaml
+from yaml.parser import ParserError
+from yaml.scanner import ScannerError
 import markdown
 
 from mdss.exceptions import InvalidPageError
@@ -130,7 +132,7 @@ class Page:
         """
         try:
             context = yaml.load(context_str) or {}
-        except yaml.scanner.ScannerError:
+        except (ParserError, ScannerError):
             raise InvalidPageError("Context was not valid YAML in file '{}'"
                                    .format(self.src_path))
 

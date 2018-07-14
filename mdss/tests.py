@@ -323,6 +323,16 @@ class TestPageRendering(BaseTest):
                 "{hello",
                 "---",
                 "this is the content"
+            ],
+            "invalid-yaml2": [
+                "title: blah",
+                "template: t.html",
+                "something:",
+                "   {",
+                " - one",
+                " - two",
+                "---",
+                "this is the content"
             ]
         }
         pages = []
