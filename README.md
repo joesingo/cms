@@ -111,7 +111,7 @@ meaning:
 | Variable | Description |
 | -------- | ----------- |
 | title         | Page title  |
-| page_ordering | The order that child pages should appear in the `children` list in the template context (see [templates](#templates)). This should be a list of filenames (with or with the `.md` suffix) or directories. Use only the basename of the child pages, not the full path |
+| page_ordering | The order that child pages should appear in the `children` list in the template context (see [templates](#templates)). This should be a list of filenames (with or without the `.md` suffix) or directories. Use only the basename of the child pages, not the full path |
 | template      | The template to render the page with. This must be a filename relative to the `theme_dir` directory (see [site configuration](#site-configuration)) |
 | macros        | Python functions(s) that can be used as macros in the content section. See [macros](#macros) for examples. |
 
