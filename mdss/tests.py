@@ -700,3 +700,68 @@ class TestCachedPropertyDecorator(BaseTest):
         assert obj.myprop == 10
         assert obj.myprop == 10
         assert obj.myprop == 10
+
+
+class TestPageOrdering(BaseTest):
+    """
+    Tests around the 'page_ordering' property
+    """
+    def get_order(self, site_setup, ordering=None):
+        templates, content, output, s_gen = site_setup
+        templates.join("c.html").write(
+            "{{ ', '.join(children|map(attribute='title')) }}"
+        )
+        s_gen.config["default_template"] = "c.html"
+
+        # create content
+        content.join("aardvarks.md").write("")
+        content.join("snakes.md").write("")
+        content.join("turtles.md").write("\n".join((
+            "title: A story about turtles",
+            "---"
+        )))
+        content.join("zebras.md").write("")
+        content.mkdir("cats").join("index.md").write("")
+        content.mkdir("dogs").join("huskies.md").write("")
+
+        # set page ordering
+        if ordering:
+            print("writing index")
+            content.join("index.md").write(yaml.dump({
+                "page_ordering": ordering
+            }))
+
+        # generate site and return actual ordering
+        s_gen.gen_site(str(output))
+        return output.join("index.html").read().split(", ")
+
+    def test_default_ordering(self, site_setup):
+        # pages should be listed alphabetically by title (not ID) if no
+        # ordering given
+        assert self.get_order(site_setup) == [
+            "A story about turtles", "Aardvarks", "Cats", "Dogs", "Snakes",
+            "Zebras"
+        ]
+
+    def test_custom_ordering(self, site_setup):
+        order = [
+            "dogs",
+            "cats.md",
+            "snakes",
+            "turtles",
+            "aardvarks",
+            "zebras.md"
+        ]
+        assert self.get_order(site_setup, order) == [
+            "Dogs", "Cats", "Snakes", "A story about turtles", "Aardvarks",
+            "Zebras"
+        ]
+
+    def test_partial_order(self, site_setup):
+        # specify only 2 pages in ordering -- the rest should be included in
+        # alphabetical order by title at the end
+        order = self.get_order(site_setup, ["zebras.md", "dogs", "snakes"])
+        assert order == [
+            "Zebras", "Dogs", "Snakes", "A story about turtles", "Aardvarks",
+            "Cats"
+        ]

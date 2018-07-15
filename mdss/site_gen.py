@@ -4,9 +4,11 @@ import shutil
 from jinja2 import Environment, FileSystemLoader
 
 from mdss.exceptions import NoContentError
-from mdss.page import Page
+from mdss.page import Page, HomePage
 from mdss.tree import SiteTree
 from mdss.macro import MacroHandler
+from mdss.utils import remove_extension
+from mdss.constants import CONTENT_FILES_EXTENSION
 
 
 class SiteGenerator:
@@ -38,11 +40,14 @@ class SiteGenerator:
         into the site tree
         """
         full_path = os.path.join(self.config.content, page_path)
-        parts = SiteGenerator.split_path(page_path[:-3])
+        parts = SiteGenerator.split_path(
+            remove_extension(page_path, CONTENT_FILES_EXTENSION)
+        )
 
         # special case for home page
         if parts == ["index"]:
-            self.tree.set_root_path(full_path)
+            home = HomePage(full_path)
+            self.tree.set_root(home)
         else:
             # remove trailing 'index'
             if parts[-1] == "index":
@@ -74,13 +79,15 @@ class SiteGenerator:
 
         # build site tree
         content_found = False
-        for f in self.walk_tree(self.config.content, ["md"]):
+        for f in self.walk_tree(self.config.content, [CONTENT_FILES_EXTENSION]):
             content_found = True
             self.add_page(f)
 
         if not content_found:
-            raise NoContentError("Did not find any content .md files in '{}'"
-                                 .format(self.config.content))
+            raise NoContentError(
+                "Did not find any content .{} files in '{}'"
+                .format(CONTENT_FILES_EXTENSION, self.config.content)
+            )
 
         self.render_all(export_dir)
 

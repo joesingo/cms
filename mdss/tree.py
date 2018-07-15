@@ -1,4 +1,5 @@
 from mdss.page import Page, HomePage
+from mdss.utils import transfer_pages
 
 
 class SiteTree:
@@ -9,11 +10,12 @@ class SiteTree:
     def __init__(self):
         self.root = HomePage()
 
-    def set_root_path(self, path):
+    def set_root(self, new_root):
         """
-        Set the path to the source file for the root homepage
+        Set the root page
         """
-        self.root.src_path = path
+        transfer_pages(self.root, new_root)
+        self.root = new_root
 
     def insert(self, new_page, location, insert_at=None):
         """

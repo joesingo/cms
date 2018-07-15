@@ -6,6 +6,8 @@ from yaml.scanner import ScannerError
 import markdown
 
 from mdss.exceptions import InvalidPageError
+from mdss.utils import remove_extension, transfer_pages
+from mdss.constants import CONTENT_FILES_EXTENSION
 
 
 def cachedproperty(func):
@@ -59,12 +61,23 @@ class Page:
 
         self.children = {}
         self.parent = None
+        # list of child page IDs in order that they should appear. Use default
+        # ordering if None
+        self.child_ordering = None
 
         self.title = self.get_default_title(self.id)
         if self.src_path:
             context, _ = self.read_page_source(context_only=True)
+
             if "title" in context:
                 self.title = context["title"]
+
+            if "page_ordering" in context:
+                self.child_ordering = [
+                    # Remove file extensions if present
+                    remove_extension(p, CONTENT_FILES_EXTENSION)
+                    for p in context["page_ordering"]
+                ]
 
     @cachedproperty
     def breadcrumbs(self):
@@ -97,16 +110,34 @@ class Page:
         # if page already exists (e.g. dummy page was created before content
         # file seen), transfer its children to its replacement
         if new_page.id in self.children:
-            for grandchild in self.children[new_page.id].iterchildren():
-                new_page.add_child(grandchild)
+            transfer_pages(self.children[new_page.id], new_page)
 
         self.children[new_page.id] = new_page
 
+    @cachedproperty
+    def sort_key(self):
+        """
+        Return a function to be used as a sort key to return child pages in
+        the correct order
+        """
+        if not self.child_ordering:
+            return attrgetter("title")
+
+        def key(page):
+            # Sort by position in child_ordering first, and by title
+            # second
+            try:
+                idx = self.child_ordering.index(page.id)
+            except ValueError:
+                idx = len(self.child_ordering)
+            return (idx, page.title)
+        return key
+
     def iterchildren(self):
         """
-        Return an iterator over this page's children sorted by title
+        Return an iterator over this page's children
         """
-        return sorted(self.children.values(), key=attrgetter("title"))
+        return sorted(self.children.values(), key=self.sort_key)
 
     def child_listing(self):
         """
