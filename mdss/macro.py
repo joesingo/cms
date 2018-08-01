@@ -22,11 +22,11 @@ class MacroHandler:
 
     # regex to match macro invocations in page content
     macro_regex = re.compile(
-        r"<\?"                     # open tag: <?
+        r"<\?"                      # open tag: <?
         r"(?P<name>[a-zA-Z0-9_]+)"  # capture macro name
-        r"(?: (?P<kwargs>[^>]+))?"     # kwargs (optional)
+        r"(?: (?P<kwargs>[^>]+))?"  # kwargs (optional)
         r">"                        # close tag
-        r"(?P<string>[^<]+)"           # capture 'inner html'
+        r"(?P<string>[^<]+)"        # capture 'inner html'
         r"<\?/(?P=name)>",          # close tag: </? followed by name
         flags=re.DOTALL
     )
