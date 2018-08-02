@@ -129,6 +129,7 @@ Some additional variables are set by mdss itself:
 | breadcrumbs | [Breadcrumbs](http://ui-patterns.com/patterns/Breadcrumbs) as a list of pages starting with the home page and ending with current page. Each page has properties `path` (relative URL to page) and `title` |
 | children    | List of child pages sorted by title. Each item in the list has properties `path`, `title` and `children` (loop through the `children` property recursively to get *all* pages beneath this one in the hierarchy) |
 | sitemap     | Recursive listing of all pages in the site, in the same format as `children`. This is the same as the children of the home page. |
+| siblings    | List of pages at the same level as this one, in the same format as `children`. This is the same as the children of this page's parent. |
 
 Templates are searched for in the theme directory -- see the `theme_dir`
 setting in [site configuration](#site-configuration).

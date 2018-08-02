@@ -556,6 +556,45 @@ class TestPageRendering(BaseTest):
             "</ul>"
         ]
 
+    def test_sibling_pages(self, site_setup):
+        templates, content, output, s_gen = site_setup
+        templates.join("p.html").write("\n".join([
+            "{% for p in siblings %}",
+            "{{ p.path }}, {{ p.title }}",
+            "{% endfor %}"
+        ]))
+
+        files = [
+            "foo/bar/index.md",
+            "foo/bar/baz.md",
+            "foo/bar/baz2/index.md",
+            "foo/bar/baz2/hello.md",
+            "foo/bar2/aaaa/index.md",
+            "foo/bar2/aaaa/p.md",
+            "foo/bar3.md",
+        ]
+
+        for f in files:
+            p = content.join(f)
+            if not local(p.dirname).check():
+                os.makedirs(p.dirname)
+            p.write("")
+
+        s_gen.config["default_template"] = "p.html"
+        s_gen.gen_site(str(output))
+
+        bar_output = output.join("foo", "bar", "index.html")
+        assert bar_output.check()
+        remove_empties = lambda l: list(filter(None, map(str.strip, l)))
+        assert remove_empties(bar_output.readlines()) == [
+            "/foo/bar/, Bar",
+            "/foo/bar2/, Bar2",
+            "/foo/bar3/, Bar3"
+        ]
+
+        home_output = output.join("index.html")
+        assert home_output.check()
+        assert remove_empties(home_output.readlines()) == []
 
 
 class TestConfigs(BaseTest):
