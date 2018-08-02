@@ -131,6 +131,7 @@ class SiteGenerator:
         if "title" not in context:
             context["title"] = page.title
 
+        context["path"] = page.dest_path
         context["breadcrumbs"] = page.breadcrumbs
         context["children"] = page.child_listing()
         context["sitemap"] = self.tree.root.child_listing()

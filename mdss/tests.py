@@ -104,6 +104,25 @@ class TestSiteGeneration(BaseTest):
         with pytest.raises(NoContentError):
             s_gen.gen_site(str(output))
 
+    def test_current_page_path(self, site_setup):
+        templates, content, output, s_gen = site_setup
+        templates.join("t.html").write("{{ path }}")
+        s_gen.config["default_template"] = "t.html"
+
+        content.mkdir("one").join("two.md").write("")
+        s_gen.gen_site(str(output))
+
+        home = output.join("index.html")
+        one = output.join("one", "index.html")
+        two = output.join("one", "two", "index.html")
+        assert home.check()
+        assert one.check()
+        assert two.check()
+
+        assert home.read() == "/"
+        assert one.read() == "/one/"
+        assert two.read() == "/one/two/"
+
     def test_breadcrumbs(self, tmpdir):
         templates = tmpdir.mkdir("templates")
         templates.join("b.html").write("\n".join([
