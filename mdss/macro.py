@@ -1,6 +1,8 @@
 import re
 from html.parser import HTMLParser
 
+from mdss.page import Page
+
 
 class HTMLAttributeParser(HTMLParser):
     """
@@ -56,14 +58,14 @@ class MacroHandler:
 
     def replace_all(self, content_str):
         """
-        Find macro invocations in the given string, evalute the macros, and
-        return the string with relacements made
+        Find macro invocations in the given string, evaluate the macros, and
+        return the string with replacements made
         """
         return self.macro_regex.sub(self.replace_match, content_str)
 
     def replace_match(self, match):
         """
-        A function to be used with re.sub to replace a macro incovation with
+        A function to be used with re.sub to replace a macro innovation with
         macro output
         """
         try:
@@ -75,4 +77,10 @@ class MacroHandler:
         if match.group("kwargs") is not None:
             kwargs = self.kwargs_parser(match.group("kwargs"))
 
-        return func(match.group("string"), **kwargs)
+        content = Page.content_to_html(match.group("string"))
+        # Remove top-level <p> if present
+        start_tag = "<p>"
+        end_tag = "</p>"
+        if content.startswith(start_tag) and content.endswith(end_tag):
+            content = content[len(start_tag):-len(end_tag)]
+        return func(content, **kwargs)

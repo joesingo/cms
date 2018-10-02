@@ -721,6 +721,27 @@ class TestMacros(BaseTest):
         exp_repr = repr([("age", "21"), ("job", "software dev"), ("name", "joe")])
         assert exp_repr in contents
 
+    def test_markdown_in_text(self, site_setup):
+        templates, content, output, s_gen = site_setup
+        templates.join("c.html").write("{{ content }}")
+
+        content.join("index.md").write("\n".join([
+            "macros: |",
+            "    def mymacro(text):",
+            "        return '<div>' + text + '</div>'",
+            "---",
+            "<?mymacro>Macros can contain **markdown**<?/mymacro>"
+        ]))
+        s_gen.config["default_template"] = "c.html"
+        s_gen.gen_site(str(output))
+        html = output.join("index.html")
+        assert html.check()
+        contents = html.read()
+
+        assert contents.strip() == (
+            "<div>Macros can contain <strong>markdown</strong></div>"
+        )
+
     def test_invalid_name(self, tmpdir):
         templates = tmpdir.mkdir("templates")
         templates.join("c.html").write("{{ content }}")
