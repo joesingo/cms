@@ -684,17 +684,17 @@ class TestConfigs(BaseTest):
 
 
 class TestMacros(BaseTest):
-    def test_macros(self, tmpdir):
-        templates = tmpdir.mkdir("templates")
-        templates.join("c.html").write("{{ content }}")
+    def test_macros(self, site_setup):
+        templates, content, output, s_gen = site_setup
 
-        content = tmpdir.mkdir("content")
+        s_gen.config["macros"] = "\n".join([
+            "def simplemacro(s):",
+            "    return s.upper()",
+            "def withkwargs(s, **kwargs):",
+            "    return repr(sorted(kwargs.items()))"
+        ])
+
         content.join("index.md").write("\n".join([
-            "macros: |",
-            "    def simplemacro(s):",
-            "        return s.upper()",
-            "    def withkwargs(s, **kwargs):",
-            "        return repr(sorted(kwargs.items()))",
             "---",
             "Macros are <?simplemacro>good<?/simplemacro>",
             "They can span",
@@ -705,11 +705,6 @@ class TestMacros(BaseTest):
             "<?withkwargs name=joe job='software dev' age=\"21\">blah<?/withkwargs>"
         ]))
 
-        config = self.create_config(tmpdir, theme_dir=str(templates),
-                                    default_template="c.html",
-                                    content=str(content))
-        s_gen = SiteGenerator(config)
-        output = tmpdir.mkdir("output")
         s_gen.gen_site(str(output))
 
         html = output.join("index.html")
@@ -725,12 +720,13 @@ class TestMacros(BaseTest):
         templates, content, output, s_gen = site_setup
         templates.join("c.html").write("{{ content }}")
 
+        s_gen.config["macros"] = "\n".join([
+            "def divmacro(text):",
+            "    return '<div>' + text + '</div>'"
+        ])
         content.join("index.md").write("\n".join([
-            "macros: |",
-            "    def mymacro(text):",
-            "        return '<div>' + text + '</div>'",
             "---",
-            "<?mymacro>Macros can contain **markdown**<?/mymacro>"
+            "<?divmacro>Macros can contain **markdown**<?/divmacro>"
         ]))
         s_gen.config["default_template"] = "c.html"
         s_gen.gen_site(str(output))
@@ -742,24 +738,16 @@ class TestMacros(BaseTest):
             "<div>Macros can contain <strong>markdown</strong></div>"
         )
 
-    def test_invalid_name(self, tmpdir):
-        templates = tmpdir.mkdir("templates")
-        templates.join("c.html").write("{{ content }}")
-
-        content = tmpdir.mkdir("content")
+    def test_invalid_name(self, site_setup):
+        templates, content, output, s_gen = site_setup
+        s_gen.config["macros"] = "\n".join([
+            "def misnamed_macro(s):",
+            "   return s"
+        ])
         content.join("index.md").write("\n".join([
-            "macros: |",
-            "   def misnamed_macro(s):",
-            "       return s",
             "---",
             "<?mymacro>hello<?/mymacro>"
         ]))
-
-        config = self.create_config(tmpdir, theme_dir=str(templates),
-                                    default_template="c.html",
-                                    content=str(content))
-        s_gen = SiteGenerator(config)
-        output = tmpdir.mkdir("output")
         with pytest.raises(KeyError):
             s_gen.gen_site(str(output))
 

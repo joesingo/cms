@@ -113,7 +113,6 @@ meaning:
 | title         | Page title  |
 | page_ordering | The order that child pages should appear in the `children` list in the template context (see [templates](#templates)). This should be a list of filenames (with or without the `.md` suffix) or directories. Use only the basename of the child pages, not the full path |
 | template      | The template to render the page with. This must be a filename relative to the `theme_dir` directory (see [site configuration](#site-configuration)) |
-| macros        | Python functions(s) that can be used as macros in the content section. See [macros](#macros) for examples. |
 
 ### Templates
 
@@ -193,23 +192,32 @@ index pages that show a list of child pages.
 ### Macros
 
 To avoid repeating HTML throughout your content, python functions may be used
-as *macros* to substitute text with the return value of the function. For
-example:
+as *macros* to substitute text with the return value of the function. Macros
+are defined in the [site config](#site-configuration) YAML file. For example:
 
-    title: Macro example
-    macros: |
-        def math_block(string, title="", type="Definition"):
-            return ("<h2 class='maths-header'>{type}: {title}</h2>"
-                    "<div class='maths-body'>{string}</div>").format(**locals())
-    ---
+mdss_config.yml:
+```
+...
+macros: |
+    def math_block(string, title="", type="Definition"):
+        return ("<h2 class='maths-header'>{type}: {title}</h2>"
+                "<div class='maths-body'>{string}</div>").format(**locals())
+...
+```
 
-    <?math_block title="Continuous function">
-        A function f is continous at x if ...
-    <?/math_block>
+page.md:
+```
+title: Macro example
+---
 
-    <?math_block title="Intermediate value theorem" type="Theorem">
-        For a function f continous on [a, b] ...
-    <?/math_block>
+<?math_block title="Continuous function">
+    A function f is continous at x if ...
+<?/math_block>
+
+<?math_block title="Intermediate value theorem" type="Theorem">
+    For a function f continous on [a, b] ...
+<?/math_block>
+```
 
 The `content` variable in the template context will then contain
 
@@ -227,9 +235,9 @@ The `content` variable in the template context will then contain
 </div>
 ```
 
-Multiple functions can be defined in the `macros` section. Each function should
-take a single positional argument (the value between `<?name>` and `<?/name>`
-for a function `name`), and may optionally accept keyword arguments.
+Multiple functions can be defined in the `macros` config section. Each function
+should take a single positional argument (the value between `<?name>` and
+`<?/name>` for a function `name`), and may optionally accept keyword arguments.
 
 Keyword arguments are given as normal HTML attributes -- they may be quoted
 with single or double quotes, or not quoted at all. Note that arguments are
@@ -250,5 +258,6 @@ The available config options are:
 | content          | Directory containing content files (default: the directory containing config file) |
 | default_context  | A dict used as the default context for each page |
 | default_template | Name of the template to use when one is not specified. This is required for pages that are generated automatically because they have pages beneath them (default: `base.html`) |
+| macros           | Python functions(s) that can be used as macros in the content section. See [macros](#macros) for examples. |
 | static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "ico", "wav"]`) |
 | theme_dir        | Directory containing templates and static files. See the templates [used on my personal website](https://github.com/joesingo/personal-website-theme) for an example theme |

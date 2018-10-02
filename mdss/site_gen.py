@@ -118,11 +118,9 @@ class SiteGenerator:
         # modify context
         context.update(p_context)
 
-        if "macros" in context:
-            code_filename = "{}:<macro>".format(page.src_path)
-            macro_handler = MacroHandler(context["macros"], code_filename)
+        if self.config.macros:
+            macro_handler = MacroHandler(self.config.macros, "<macro>")
             content = macro_handler.replace_all(content)
-
         context.update(content=Page.content_to_html(content))
 
         if "template" not in context:

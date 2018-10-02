@@ -65,6 +65,7 @@ class SiteConfig(BaseConfig):
         ConfigOption("theme_dir", None),
         ConfigOption("default_template", "base.html"),
         ConfigOption("default_context", {}),
+        ConfigOption("macros", ""),
         ConfigOption("static_filenames", ["css", "js", "png", "jpg", "gif",
                                           "ico", "wav"]),
     ]
