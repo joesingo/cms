@@ -207,6 +207,50 @@ class TestSiteGeneration(BaseTest):
                                                    "file.html"]
         assert t("relative/dir/") == ["relative", "dir"]
 
+    def test_sitemap_file(self, site_setup):
+        templates, content, output, s_gen = site_setup
+        templates.join("d.html").write("{{ content }}")
+        s_gen.config["default_template"] = "d.html"
+
+        one = content.mkdir("one")
+        one.mkdir("one-one").join("f.md").write("")
+        content.mkdir("two").join("g.md").write("")
+        content.join("h.md").write("")
+        one.join("i.md").write("")
+
+        s_gen.config["sitemap_file"] = {
+            "base_url": "bbb", "filename": "mylisting.txt"
+        }
+        s_gen.gen_site(str(output))
+
+        listing = output.join("mylisting.txt")
+        assert listing.check()
+        print(listing.read())
+        assert set(listing.read().strip().split("\n")) == {
+            "bbb/one/one-one/f/index.html",
+            "bbb/two/g/index.html",
+            "bbb/h/index.html",
+            "bbb/one/i/index.html",
+            "bbb/index.html",
+            "bbb/one/index.html",
+            "bbb/one/one-one/index.html",
+            "bbb/two/index.html"
+        }
+
+    def test_sitemap_file_config(self, tmpdir):
+        # Invalid settings
+        with pytest.raises(ValueError):
+            self.create_config(tmpdir, sitemap_file="blah")
+        with pytest.raises(ValueError):
+            self.create_config(tmpdir, sitemap_file={})
+        with pytest.raises(ValueError):
+            self.create_config(tmpdir, sitemap_file={"filename": "blah"})
+
+        s1 = {"filename": "blah", "base_url": "b"}
+        self.create_config(tmpdir, theme_dir="t", sitemap_file=s1)
+        # Extra keys should not cause problems
+        s2 = {"filename": "blah", "base_url": "b", "extra": "hello"}
+        self.create_config(tmpdir, theme_dir="t", sitemap_file=s2)
 
 class TestStaticFiles(BaseTest):
     def test_static(self, site_setup):

@@ -243,6 +243,23 @@ Keyword arguments are given as normal HTML attributes -- they may be quoted
 with single or double quotes, or not quoted at all. Note that arguments are
 always passed as *strings*.
 
+## Sitemaps
+
+A sitemap in [plain text
+format](https://www.sitemaps.org/protocol.html#otherformats) will be created
+when the `sitemap_file` setting is given, e.g:
+
+mdss_config.yml:
+```
+...
+sitemap_file:
+  base_url: https://mydomain.com
+  filename: sitemap.txt
+...
+```
+
+This will create `sitemap.txt` at the top level when the site is exported.
+
 ## Site configuration
 
 Site-wide configuration options can be set in `mdss_config.yml` at the root
@@ -258,6 +275,7 @@ The available config options are:
 | content          | Directory containing content files (default: the directory containing config file) |
 | default_context  | A dict used as the default context for each page |
 | default_template | Name of the template to use when one is not specified. This is required for pages that are generated automatically because they have pages beneath them (default: `base.html`) |
-| macros           | Python functions(s) that can be used as macros in the content section. See [macros](#macros) for examples. |
+| macros           | Python functions(s) that can be used as macros in the content section. See [macros](#macros) for examples |
+| sitemap_file     | Optional: a dictionary with keys 'base_url' and 'filename' used to create a sitemap file |
 | static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "ico", "wav"]`) |
 | theme_dir        | Directory containing templates and static files. See the templates [used on my personal website](https://github.com/joesingo/personal-website-theme) for an example theme |

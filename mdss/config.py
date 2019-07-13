@@ -68,6 +68,7 @@ class SiteConfig(BaseConfig):
         ConfigOption("macros", ""),
         ConfigOption("static_filenames", ["css", "js", "png", "jpg", "gif",
                                           "ico", "wav"]),
+        ConfigOption("sitemap_file", {}),
     ]
     error_if_extra = True
 
@@ -100,3 +101,13 @@ class SiteConfig(BaseConfig):
 
     def process_theme_dir(self, t_path):
         return os.path.expanduser(t_path)
+
+    def process_sitemap_file(self, listing_settings):
+        if not listing_settings:
+            return None
+        if (not "base_url" in listing_settings
+                and "filename" in listing_settings):
+            raise ValueError(
+                "'base_url' and 'filename' must be given in sitemap_file"
+            )
+        return listing_settings

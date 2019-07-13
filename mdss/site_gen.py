@@ -140,13 +140,16 @@ class SiteGenerator:
 
     def render_all(self, export_dir):
         """
-        Render each page in the tree and write it to a file
+        Render each page in the tree and write it to a file, and optionally
+        create a plain text sitemap file listing all URLs
         """
+        paths = []
         for page in self.tree:
             html = self.render_page(page)
             # remove leading / from path
-            dest_path = os.path.join(export_dir, page.dest_path[1:],
-                                     "index.html")
+            rel_path = os.path.join(page.dest_path[1:], "index.html")
+            paths.append(rel_path)
+            dest_path = os.path.join(export_dir, rel_path)
 
             # make sure containing directory exists
             par_dir = os.path.dirname(dest_path)
@@ -154,3 +157,10 @@ class SiteGenerator:
                 os.makedirs(par_dir)
             with open(dest_path, "w") as f:
                 f.write(html)
+
+        if self.config.sitemap_file:
+            base_url = self.config.sitemap_file["base_url"]
+            filename = self.config.sitemap_file["filename"]
+            outpath = os.path.join(export_dir, filename)
+            with open(outpath, "w", encoding="utf-8") as f:
+                f.writelines("{}/{}\n".format(base_url, path) for path in paths)
