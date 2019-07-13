@@ -147,9 +147,9 @@ class SiteGenerator:
         for page in self.tree:
             html = self.render_page(page)
             # remove leading / from path
-            rel_path = os.path.join(page.dest_path[1:], "index.html")
-            paths.append(rel_path)
-            dest_path = os.path.join(export_dir, rel_path)
+            path = page.dest_path[1:]
+            paths.append(path)
+            dest_path = os.path.join(export_dir, path, "index.html")
 
             # make sure containing directory exists
             par_dir = os.path.dirname(dest_path)

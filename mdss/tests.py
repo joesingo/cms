@@ -227,14 +227,14 @@ class TestSiteGeneration(BaseTest):
         assert listing.check()
         print(listing.read())
         assert set(listing.read().strip().split("\n")) == {
-            "bbb/one/one-one/f/index.html",
-            "bbb/two/g/index.html",
-            "bbb/h/index.html",
-            "bbb/one/i/index.html",
-            "bbb/index.html",
-            "bbb/one/index.html",
-            "bbb/one/one-one/index.html",
-            "bbb/two/index.html"
+            "bbb/one/one-one/f/",
+            "bbb/two/g/",
+            "bbb/h/",
+            "bbb/one/i/",
+            "bbb/",
+            "bbb/one/",
+            "bbb/one/one-one/",
+            "bbb/two/"
         }
 
     def test_sitemap_file_config(self, tmpdir):
