@@ -67,7 +67,7 @@ class SiteConfig(BaseConfig):
         ConfigOption("default_context", {}),
         ConfigOption("macros", ""),
         ConfigOption("static_filenames", ["css", "js", "png", "jpg", "gif",
-                                          "ico", "wav"]),
+                                          "ico", "wav", "pdf"]),
         ConfigOption("sitemap_file", {}),
     ]
     error_if_extra = True

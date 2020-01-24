@@ -277,5 +277,5 @@ The available config options are:
 | default_template | Name of the template to use when one is not specified. This is required for pages that are generated automatically because they have pages beneath them (default: `base.html`) |
 | macros           | Python functions(s) that can be used as macros in the content section. See [macros](#macros) for examples |
 | sitemap_file     | Optional: a dictionary with keys 'base_url' and 'filename' used to create a sitemap file |
-| static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "ico", "wav"]`) |
+| static_filenames | List of file extensions used to decide which files are 'static files' and should be exported (default: `["css", "js", "png", "jpg", "gif", "ico", "wav", "pdf"]`) |
 | theme_dir        | Directory containing templates and static files. See the templates [used on my personal website](https://github.com/joesingo/personal-website-theme) for an example theme |
